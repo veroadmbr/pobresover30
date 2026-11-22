@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar no Pobres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pobres.css">
+<style>
+/* VOICE: porta de entrada sóbria
+   IDEA: a página de acesso de uma revista por assinatura
+   PICTURE: o selo Over 30 sobre a ficha de login
+   COLOUR and TYPE: branco, preto; Playfair + Work Sans
+   LAYOUT: coluna única centralizada */
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Work Sans",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+main{flex:1;width:100%;max-width:440px;margin:0 auto;padding:clamp(32px,7vw,72px) 20px 48px}
+.seal{background:#fff;border-radius:10px;padding:14px;width:150px;margin:0 auto 26px}
+.seal img{display:block;width:100%;height:auto}
+h1{font:400 clamp(30px,4.4vw,38px)/1.1 "Playfair Display",Georgia,serif;margin:0;text-align:center}
+.sub{color:var(--mut);text-align:center;margin:10px 0 28px}
+.btn.full{width:100%}
+.row{display:flex;justify-content:flex-end;margin:-6px 0 14px}
+.alt{text-align:center;font-size:14px;color:var(--mut);margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+.alt a{color:var(--ink);font-weight:600}
+.forgot{display:none;font-size:13px;color:var(--mut);background:var(--soft);padding:12px 14px;border-radius:8px;margin-bottom:14px}.forgot.on{display:block}
+</style>
+</head>
+<body>
+<header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
+<main>
+  <div class="seal"><img src="img/pobres-over30.svg" alt="Pobres Over 30"></div>
+  <h1>Entre na sua conta</h1>
+  <p class="sub">Para ver e editar sua página Pobres Over 30.</p>
+  <form id="f" novalidate>
+    <label class="field"><span class="lb">E-mail</span><input class="inp" id="em" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com"></label>
+    <label class="field"><span class="lb">Senha</span><span class="pw"><input class="inp" id="pw" type="password" autocomplete="current-password" placeholder="Sua senha"><button type="button" class="eye" id="eye" aria-label="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+    <div class="row"><button type="button" class="lnk" id="fg">Esqueci a senha</button></div>
+    <div class="forgot" id="fgBox">A recuperação de senha por e-mail entra quando o site estiver ligado ao servidor. Por enquanto, fale com o suporte.</div>
+    <button class="btn full" id="go">Entrar</button>
+    <div class="err" id="err" aria-live="polite"></div>
+  </form>
+  <p class="alt">Ainda não está na lista? <a href="inscricao.html">Inscreva-se</a></p>
+</main>
+<script src="js/conta.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s);
+if(Conta.atual())location.replace('perfil.html');
+$('#eye').onclick=()=>{const i=$('#pw');i.type=i.type==='password'?'text':'password';$('#eye').setAttribute('aria-label',i.type==='password'?'Mostrar senha':'Esconder senha')};
+$('#fg').onclick=()=>$('#fgBox').classList.toggle('on');
+$('#f').onsubmit=async e=>{
+  e.preventDefault();$('#err').textContent='';
+  const em=$('#em').value,pw=$('#pw').value;
+  if(!em.trim()||!pw){$('#err').textContent='Preencha e-mail e senha.';return}
+  $('#go').disabled=true;$('#go').textContent='Entrando...';
+  try{await Conta.entrar(em,pw);location.href='perfil.html'}
+  catch(x){$('#err').textContent=x.message;$('#go').disabled=false;$('#go').textContent='Entrar'}
+};
+}
+</script>
+</body>
+</html>

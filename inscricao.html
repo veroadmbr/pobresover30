@@ -88,7 +88,7 @@ const app=$('#app');
 
 function head(t,s){return `<div class="step-n">Passo ${step+1} de ${TOTAL}</div><h1 class="q">${t}</h1>${s?`<p class="sub">${s}</p>`:''}`}
 function acts(next='Continuar'){return `<div class="err" id="err"></div><div class="acts">${step>0?'<button type="button" class="btn ghost" id="back">Voltar</button>':'<span></span>'}<button class="btn" id="next">${next}</button></div>`}
-function seal(){return step===0?`<div class="seal"><img src="img/pobres-over30.png" alt="Pobres Over 30"><span>Inscrição aberta para a lista de 2026.<br>Só para quem já passou dos 30.</span></div>`:''}
+function seal(){return step===0?`<div class="seal"><img src="img/pobres-over30.svg" alt="Pobres Over 30"><span>Inscrição aberta para a lista de 2026.<br>Só para quem já passou dos 30.</span></div>`:''}
 const err=m=>{$('#err').textContent=m||''};
 const iso=()=>`${d.ano}-${String(d.mes).padStart(2,'0')}-${String(d.dia).padStart(2,'0')}`;
 const diasNoMes=(m,a)=>new Date(a||2000,m,0).getDate();

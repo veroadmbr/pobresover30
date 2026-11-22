@@ -8,7 +8,7 @@
 
   async function prep(p) {
     await Promise.all([`700 80px ${SERIF}`, `600 80px ${SERIF}`, `400 80px ${SERIF}`, `italic 400 80px ${SERIF}`, `600 30px ${SANS}`, `500 30px ${SANS}`, `400 30px ${SANS}`].map(f => document.fonts.load(f).catch(() => {})));
-    if (!seal) seal = await img('img/pobres-over30.png').catch(() => null);
+    if (!seal) seal = await img('img/pobres-over30.svg').catch(() => null);
     const foto = p.foto ? await img(p.foto).catch(() => null) : null;
     const cot = Conta.cotacao(p.id);
     return { seal, foto, cot, idade: Conta.idade(p.nascimento), local: `${p.cidade}, ${p.uf}`, quote: frase(p) };
