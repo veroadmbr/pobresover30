@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inscrição Pobres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pobres.css">
+<style>
+/* VOICE: formulário calmo de revista, uma pergunta por vez, com humor nas opções
+   IDEA: ficha de inscrição de um ranking anual
+   PICTURE: a própria pergunta grande, campos largos, barra de progresso preta
+   COLOUR and TYPE: branco, preto, vermelho só no selo e em erros; Playfair + Work Sans
+   LAYOUT: coluna única de 560px, progresso no topo, ações no rodapé do passo */
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Work Sans",system-ui,sans-serif;overflow-x:clip;min-height:100vh;display:flex;flex-direction:column}
+h1,h2{font-family:"Playfair Display",Georgia,serif;font-weight:400;margin:0;line-height:1.1;text-wrap:balance}
+.prog{height:4px;background:var(--line)}.prog i{display:block;height:100%;background:var(--ink);width:0;transition:width .35s ease}
+main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:clamp(28px,6vw,64px) 20px 48px}
+.seal{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.seal img{width:92px;height:auto;background:#fff;border-radius:6px;padding:6px}
+.seal span{font-size:12px;color:var(--mut);line-height:1.4}
+.step-n{font:600 11px "Work Sans";text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:10px}
+.q{font-size:clamp(30px,4.6vw,42px)}
+.sub{color:var(--mut);margin:10px 0 28px;max-width:46ch}
+.row3{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,1fr);gap:10px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.sug{margin-top:4px}
+.sug-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:600;margin-bottom:8px}
+#opts{display:grid;gap:10px}
+.opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:14px 16px;font:15px/1.5 "Work Sans",sans-serif;color:var(--ink);cursor:pointer;transition:border-color .15s}
+.opt:hover{border-color:light-dark(#b9b9b9,#444)}
+.opt.on{border-color:var(--ink);box-shadow:0 0 0 3px light-dark(rgba(0,0,0,.08),rgba(255,255,255,.12))}
+.opt-n{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:4px}
+.opt-c{display:block;font-size:12px;font-weight:600;margin-top:8px;text-decoration:underline;text-underline-offset:3px}
+.opt.on .opt-c{text-decoration:none;color:var(--up)}
+.acts{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:28px;flex-wrap:wrap}
+.acts .btn{min-width:150px}
+.pane{animation:in .3s ease}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+@media(prefers-reduced-motion:reduce){.pane{animation:none}.prog i{transition:none}}
+.up{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.up .ph{width:160px;border-radius:12px;flex:none}
+.up .ph svg{width:40%}
+.fileb{position:relative;overflow:hidden}
+.fileb input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.age{display:inline-flex;align-items:center;gap:8px;margin-top:4px;font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;background:var(--soft)}
+.age.ok{color:var(--up)}.age.no{color:var(--dn)}
+.reject{text-align:center;padding-top:10px}
+.reject .big{font:900 clamp(72px,14vw,120px)/1 "Playfair Display",Georgia,serif;color:var(--dn)}
+.reject p{color:var(--mut);max-width:44ch;margin:14px auto 26px}
+.reject .acts{justify-content:center}
+.done{text-align:center}
+.mini{display:inline-block;width:220px;text-align:left;margin:26px 0 10px}
+.mini .ph{border-radius:4px}
+.mk{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.mk.up{color:var(--up)}.mk.dn{color:var(--dn)}
+.nm{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:10px}
+.nm b{font:600 18px "Playfair Display",Georgia,serif}
+.pc{font-size:12px;font-weight:600}.pc.up{color:var(--up)}.pc.dn{color:var(--dn)}
+.ct{font-size:12px;color:var(--mut)}
+.done .acts{justify-content:center}
+.have{font-size:14px;color:var(--mut);text-align:center;margin-top:34px}.have a{color:var(--ink);font-weight:600}
+@media(max-width:520px){.two{grid-template-columns:minmax(0,1fr)}.row3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.row3>:nth-child(3){grid-column:1/-1}.acts .btn{flex:1;min-width:0}}
+</style>
+</head>
+<body>
+<header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
+<div class="prog" aria-hidden="true"><i id="bar"></i></div>
+<main id="app" aria-live="polite"></main>
+
+<script src="data/cidades.js"></script>
+<script src="js/conta.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s), esc=Conta.esc;
+const PERSON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
+const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
+const EYE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const ANO=new Date().getFullYear();
+const d={primeiro:'',sobrenome:'',historia:'',dia:null,mes:null,ano:null,cidade:'',uf:null,area:null,foto:'',email:'',whatsapp:'',senha:''};
+let step=0;
+const TOTAL=7;
+const app=$('#app');
+
+
+function head(t,s){return `<div class="step-n">Passo ${step+1} de ${TOTAL}</div><h1 class="q">${t}</h1>${s?`<p class="sub">${s}</p>`:''}`}
+function acts(next='Continuar'){return `<div class="err" id="err"></div><div class="acts">${step>0?'<button type="button" class="btn ghost" id="back">Voltar</button>':'<span></span>'}<button class="btn" id="next">${next}</button></div>`}
+function seal(){return step===0?`<div class="seal"><img src="img/pobres-over30.png" alt="Pobres Over 30"><span>Inscrição aberta para a lista de 2026.<br>Só para quem já passou dos 30.</span></div>`:''}
+const err=m=>{$('#err').textContent=m||''};
+const iso=()=>`${d.ano}-${String(d.mes).padStart(2,'0')}-${String(d.dia).padStart(2,'0')}`;
+const diasNoMes=(m,a)=>new Date(a||2000,m,0).getDate();
+
+function render(){
+  $('#bar').style.width=(step/TOTAL*100)+'%';
+  const steps=[s0,s1,s2,s3,sH,s4,s5];
+  app.innerHTML=`<form class="pane" id="f" novalidate>${seal()}${steps[step].html()}</form>${step===0?'<p class="have">Já tem conta? <a href="entrar.html">Entrar</a></p>':''}`;
+  steps[step].mount?.();
+  $('#back')?.addEventListener('click',()=>{step--;render()});
+  $('#f').onsubmit=async e=>{e.preventDefault();err('');const r=await steps[step].ok();if(r===true){step++;step<TOTAL?render():null}};
+  const first=app.querySelector('.inp,.psel-btn');if(first&&step>0)first.focus();
+}
+
+const s0={html:()=>head('Como você se chama?','Nome e sobrenome aparecem no seu card da lista.')+`<div class="two"><label class="field"><span class="lb">Nome</span><input class="inp" id="pn" autocomplete="given-name" placeholder="Seu nome" value="${esc(d.primeiro)}" maxlength="30"></label><label class="field"><span class="lb">Sobrenome</span><input class="inp" id="sn" autocomplete="family-name" placeholder="Seu sobrenome" value="${esc(d.sobrenome)}" maxlength="40"></label></div>`+acts(),
+  ok(){const a=$('#pn').value.trim(),b=$('#sn').value.trim();if(!a){$('#pn').classList.add('bad');err('Digite seu nome.');return}if(!b){$('#sn').classList.add('bad');err('Digite seu sobrenome.');return}d.primeiro=a;d.sobrenome=b;return true}};
+
+let sd,sm,sa;
+const s1={html:()=>head('Quando você nasceu?','A lista é só para quem tem 30 anos ou mais. A gente confere.')+`<div class="field"><span class="lb">Data de nascimento</span><div class="row3"><div id="dd"></div><div id="mm"></div><div id="aa"></div></div><div id="ageTag"></div></div>`+acts(),
+  mount(){
+    const anos=[];for(let a=ANO;a>=ANO-100;a--)anos.push({value:a,label:String(a)});
+    const dias=n=>Array.from({length:n},(_,i)=>({value:i+1,label:String(i+1).padStart(2,'0')}));
+    const upd=()=>{d.dia=sd.value;d.mes=sm.value;d.ano=sa.value;
+      if(d.mes){const n=diasNoMes(d.mes,d.ano);sd.setItems(dias(n));d.dia=sd.value}
+      if(d.dia&&d.mes&&d.ano){const a=Conta.idade(iso());$('#ageTag').innerHTML=`<span class="age ${a>=30?'ok':'no'}">${a} anos${a>=30?' · pode entrar':' · ainda não'}</span>`}else $('#ageTag').innerHTML=''};
+    sd=PSelect($('#dd'),{items:dias(31),placeholder:'Dia',value:d.dia,label:'Dia',onChange:upd});
+    sm=PSelect($('#mm'),{items:MESES.map((m,i)=>({value:i+1,label:m})),placeholder:'Mês',value:d.mes,label:'Mês',onChange:upd});
+    sa=PSelect($('#aa'),{items:anos,placeholder:'Ano',value:d.ano,search:true,label:'Ano',onChange:upd});
+    upd();
+  },
+  ok(){
+    if(!sd.value||!sm.value||!sa.value){[sd,sm,sa].forEach(s=>!s.value&&s.el.classList.add('bad'));err('Escolha dia, mês e ano.');return}
+    if(new Date(iso())>new Date()){err('Essa data ainda não chegou.');return}
+    if(Conta.idade(iso())<30){reject();return}
+    return true}};
+
+function reject(){
+  const f=Conta.faltaPara30(iso());
+  $('#bar').style.width='0%';
+  const parts=[f.anos?`${f.anos} ${f.anos>1?'anos':'ano'}`:'',f.dias?`${f.dias} ${f.dias>1?'dias':'dia'}`:''].filter(Boolean).join(' e ');
+  app.innerHTML=`<div class="pane reject"><div class="big">${Conta.idade(iso())}</div><h1 class="q">Ainda não, jovem.</h1><p>O Pobres Over 30 só aceita pessoas a partir de 30 anos. Faltam ${parts||'poucos dias'} pra você entrar. Aproveite enquanto ainda dá pra culpar a idade.</p><div class="acts"><button class="btn ghost" id="fix">Corrigir a data</button><a class="btn" href="top30.html">Ver os 30 tops</a></div></div>`;
+  $('#fix').onclick=()=>render();
+}
+
+let su,sc;
+const s2={html:()=>head('De onde você é?','Escolha o estado e depois a cidade. Lista oficial do IBGE.')+`<div class="field"><span class="lb">Estado</span><div id="uf"></div></div><div class="field"><span class="lb">Cidade</span><div id="cid"></div></div>`+acts(),
+  mount(){
+    sc=PSelect($('#cid'),{items:Conta.cidades(d.uf),placeholder:'Selecione a cidade',disabledText:'Escolha o estado primeiro',value:d.cidade||null,search:true,disabled:!d.uf,label:'Cidade'});
+    su=PSelect($('#uf'),{items:Conta.estados(),placeholder:'Selecione o estado',value:d.uf,search:true,label:'Estado',onChange:v=>{sc.setItems(Conta.cidades(v));sc.set(null);sc.disable(false);setTimeout(()=>sc.el.querySelector('.psel-btn').click(),60)}});
+  },
+  ok(){if(!su.value){su.el.classList.add('bad');err('Escolha o estado.');return}if(!sc.value){sc.el.classList.add('bad');err('Escolha a cidade.');return}d.uf=su.value;d.cidade=sc.value;return true}};
+
+let sar;
+const s3={html:()=>head('Com o que você trabalha?','Escolha a área mais próxima. Vale ser sincero.')+`<div class="field"><span class="lb">Área de atuação</span><div id="area"></div><div class="hint">Digite para buscar entre as opções.</div></div>`+acts(),
+  mount(){sar=PSelect($('#area'),{items:Conta.AREAS,placeholder:'Selecione sua área',value:d.area,search:true,label:'Área de atuação'})},
+  ok(){if(!sar.value){sar.el.classList.add('bad');err('Escolha uma área.');return}d.area=sar.value;return true}};
+
+let opts=[];
+const sH={html:()=>head('Conte sua história.','Escreva com suas palavras ou escolha uma das histórias prontas abaixo.')+`<label class="field"><span class="lb">Sua história <span class="count" id="hc"></span></span><textarea class="inp" id="hist" maxlength="600" placeholder="Como você chegou até aqui?">${esc(d.historia)}</textarea></label>
+  <div class="sug"><div class="sug-h"><span>Histórias prontas para você</span><button type="button" class="lnk" id="regen">Gerar outras</button></div><div id="opts"></div></div>`+acts(),
+  mount(){
+    const ta=$('#hist'),cnt=()=>$('#hc').textContent=`${ta.value.length}/600`;ta.oninput=()=>{cnt();paint()};cnt();
+    const me={nascimento:iso(),cidade:d.cidade,uf:d.uf,area:d.area,primeiro:d.primeiro};
+    const gen=()=>{opts=Conta.historias(me,2);paint()};
+    const paint=()=>{$('#opts').innerHTML=opts.map((t,i)=>`<button type="button" class="opt${ta.value===t?' on':''}" data-i="${i}"><span class="opt-n">Opção ${i+1}</span>${esc(t)}<span class="opt-c">${ta.value===t?'Selecionada':'Usar esta história'}</span></button>`).join('');
+      $('#opts').querySelectorAll('.opt').forEach(b=>b.onclick=()=>{ta.value=opts[+b.dataset.i];cnt();paint()})};
+    $('#regen').onclick=gen;
+    gen();
+  },
+  ok(){const v=$('#hist').value.trim();if(v.length<20){$('#hist').classList.add('bad');err('Escreva pelo menos uma frase ou escolha uma história pronta.');return}d.historia=v;return true}};
+
+const s4={html:()=>head('Mostra essa cara.','Uma foto quadrada fica melhor. Pode pular e colocar depois no perfil.')+`<div class="up"><div class="ph" id="pv">${d.foto?`<img src="${d.foto}" alt="">`:PERSON}</div><div><span class="btn ghost fileb">Escolher foto<input type="file" id="fp" accept="image/*" aria-label="Escolher foto"></span><div class="hint" id="fn">${d.foto?'Foto escolhida.':'JPG ou PNG.'}</div></div></div>`+acts(d.foto?'Continuar':'Pular por agora'),
+  mount(){$('#fp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{d.foto=await Conta.foto(f);$('#pv').innerHTML=`<img src="${d.foto}" alt="">`;$('#fn').textContent=f.name;$('#next').textContent='Continuar'}catch(x){err('Não deu pra ler essa imagem.')}}},
+  ok:()=>true};
+
+const s5={html:()=>head('Agora, sua conta.','É com o e-mail e a senha que você entra para editar sua página.')+`
+  <label class="field"><span class="lb">E-mail</span><input class="inp" id="em" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com" value="${esc(d.email)}"></label>
+  <label class="field"><span class="lb">WhatsApp</span><input class="inp" id="wa" type="tel" autocomplete="tel" inputmode="tel" placeholder="(13) 99999-9999" value="${esc(d.whatsapp)}"></label>
+  <label class="field"><span class="lb">Crie uma senha</span><span class="pw"><input class="inp" id="pw" type="password" autocomplete="new-password" placeholder="Mínimo de 8 caracteres"><button type="button" class="eye" data-t="pw" aria-label="Mostrar senha">${EYE}</button></span><span class="meter" id="mt"><i></i><i></i><i></i><i></i></span></label>
+  <label class="field"><span class="lb">Confirme a senha</span><span class="pw"><input class="inp" id="pw2" type="password" autocomplete="new-password" placeholder="Repita a senha"><button type="button" class="eye" data-t="pw2" aria-label="Mostrar senha">${EYE}</button></span></label>
+  <label class="chk"><input type="checkbox" id="tm"><span class="box"></span><span>Li e aceito os <a href="#">termos de uso</a> e a <a href="#">política de privacidade</a>, e confirmo que tenho 30 anos ou mais.</span></label>`+acts('Criar minha conta'),
+  mount(){
+    const wa=$('#wa');wa.oninput=()=>{let v=wa.value.replace(/\D/g,'').slice(0,11);wa.value=v.length>6?`(${v.slice(0,2)}) ${v.slice(2,v.length-4)}-${v.slice(-4)}`:v.length>2?`(${v.slice(0,2)}) ${v.slice(2)}`:v};
+    $('#pw').oninput=e=>{const v=e.target.value;let s=0;if(v.length>=8)s++;if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++;if(/\d/.test(v))s++;if(/[^A-Za-z0-9]/.test(v)||v.length>=12)s++;$('#mt').className='meter'+(v?' s'+Math.max(1,s):'')};
+    app.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=$('#'+b.dataset.t);i.type=i.type==='password'?'text':'password';b.setAttribute('aria-label',i.type==='password'?'Mostrar senha':'Esconder senha')});
+  },
+  async ok(){
+    const em=$('#em').value.trim(),wa=$('#wa').value,pw=$('#pw').value,pw2=$('#pw2').value;
+    app.querySelectorAll('.bad').forEach(x=>x.classList.remove('bad'));
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){$('#em').classList.add('bad');err('Digite um e-mail válido.');return}
+    if(wa.replace(/\D/g,'').length<10){$('#wa').classList.add('bad');err('Digite o WhatsApp com DDD.');return}
+    if(pw.length<8){$('#pw').classList.add('bad');err('A senha precisa ter pelo menos 8 caracteres.');return}
+    if(pw!==pw2){$('#pw2').classList.add('bad');err('As senhas não são iguais.');return}
+    if(!$('#tm').checked){err('Aceite os termos para continuar.');return}
+    d.email=em;d.whatsapp=wa;
+    $('#next').disabled=true;$('#next').textContent='Criando...';
+    try{const u=await Conta.criar({...d,nascimento:iso(),senha:pw});done(u)}
+    catch(x){err(x.message);$('#next').disabled=false;$('#next').textContent='Criar minha conta'}
+  }};
+
+function done(u){
+  const c=Conta.cotacao(u.id);
+  $('#bar').style.width='100%';Conta.header($('#acct'));
+  app.innerHTML=`<div class="pane done"><div class="step-n">Inscrição confirmada</div><h1 class="q">Bem-vindo à lista, ${esc(u.primeiro)}.</h1>
+  <div class="mini"><div class="ph">${u.foto?`<img src="${u.foto}" alt="">`:PERSON}<span class="mk ${c.dir}">${ARR[c.dir]}</span></div><div class="nm"><b>${esc(u.nome)}</b><span class="pc ${c.dir}">${c.dir==='up'?'+':'−'}${c.pct}%</span></div><div class="ct">${esc(u.cidade)}, ${u.uf} · ${Conta.idade(u.nascimento)} anos</div></div>
+  <p class="sub" style="margin-inline:auto">Sua cotação de hoje já saiu. Agora monte sua página Pobres Over 30.</p>
+  <div class="acts"><a class="btn ghost" href="pessoa.html#${u.id}">Ver minha página</a><a class="btn" href="perfil.html">Editar meu perfil</a></div></div>`;
+}
+if(Conta.atual()){app.innerHTML=`<div class="pane done"><h1 class="q">Você já está na lista.</h1><p class="sub" style="margin-inline:auto">Sua conta já está ativa neste navegador.</p><div class="acts"><a class="btn" href="perfil.html">Ver meu perfil</a></div></div>`;$('#bar').style.width='100%'}
+else render();
+}
+</script>
+</body>
+</html>

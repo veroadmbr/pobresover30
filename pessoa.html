@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pobres Over 30</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pobres.css">
+<style>
+/* VOICE: verbete de ranking de revista, para compartilhar
+   IDEA: a página de um nome da lista Over 30, com kit de divulgação
+   PICTURE: foto quadrada grande ao lado do nome; no modal, story, reel e post lado a lado
+   COLOUR and TYPE: branco, preto, verde e vermelho só na cotação; Playfair + Work Sans
+   LAYOUT: selo, ficha em duas colunas, história; modal com três peças e botões de download */
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Work Sans",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Playfair Display",Georgia,serif;font-weight:400;margin:0;line-height:1.08;text-wrap:balance}
+.w{max-width:1040px;margin:0 auto;padding:0 20px}
+.band{background:#fff;border-bottom:1px solid var(--line);padding:26px 20px;display:flex;justify-content:center}
+.band img{width:clamp(140px,18vw,200px);height:auto;display:block}
+.bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 0;flex-wrap:wrap}
+.crumb{font-size:12px;color:var(--mut)}.crumb a{color:var(--ink)}
+.tools{display:flex;gap:10px;flex-wrap:wrap}
+.tools .btn{height:42px;padding:0 20px;font-size:14px}
+.sheet{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(24px,4vw,52px);padding:10px 0 52px;align-items:start}
+.pic .ph{border-radius:4px}.pic .ph>svg{width:40%}
+.mk{position:absolute;right:14px;top:14px;height:38px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.18);font-size:14px;font-weight:700}
+.mk.up{color:var(--up)}.mk.dn{color:var(--dn)}
+.rk{position:absolute;left:0;bottom:0;background:var(--bg);font:900 44px/1 "Playfair Display",Georgia,serif;padding:10px 16px 6px 0;color:var(--red)}
+.tag{display:inline-block;font:600 10px "Work Sans";text-transform:uppercase;letter-spacing:.05em;padding-bottom:6px;border-bottom:2px solid var(--dn);margin-bottom:16px}
+.info h1{font-size:clamp(36px,5vw,58px);font-weight:600}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;color:var(--mut);font-size:14px}.meta b{color:var(--ink);font-weight:600}
+.area{display:inline-block;margin-top:16px;padding:7px 14px;border-radius:999px;background:var(--soft);font-size:13px;font-weight:600}
+blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Display",Georgia,serif}
+.hist h2{font-size:22px;font-weight:600;margin-top:30px}
+.hist p{margin:10px 0 0;max-width:62ch}
+.ig{display:inline-block;margin-top:18px;font-size:14px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.notfound{text-align:center;padding:80px 0}.notfound p{color:var(--mut)}
+/* modal */
+.mod{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:60;overflow:auto;padding:24px 16px}
+.mod.on{display:block}
+.box{background:var(--card);max-width:1040px;margin:0 auto;border-radius:12px;padding:26px;position:relative}
+.box h2{font-size:30px;font-weight:600}
+.box>p{color:var(--mut);margin:6px 0 20px;font-size:14px}
+.x{position:absolute;right:12px;top:12px;width:44px;height:44px;border:0;background:none;cursor:pointer;border-radius:50%;display:grid;place-items:center;color:var(--ink)}.x:hover{background:var(--soft)}
+.kit{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:start}
+.piece{display:flex;flex-direction:column;gap:10px}
+.piece h3{font:600 13px "Work Sans";display:flex;justify-content:space-between;gap:8px}
+.piece h3 span{font-weight:400;color:var(--mut)}
+.frame{background:var(--soft);border-radius:10px;padding:12px;display:grid;place-items:center}
+.frame canvas{display:block;width:100%;height:auto;border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.12);background:#fff}
+.frame.v canvas{max-width:240px}
+.piece .btn{height:44px;font-size:14px;width:100%}
+.prog{height:4px;background:var(--line);border-radius:2px;overflow:hidden;display:none}.prog.on{display:block}.prog i{display:block;height:100%;width:0;background:var(--ink)}
+.msg{font-size:12px;color:var(--mut);min-height:16px}
+.link{display:flex;gap:10px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.link .inp{flex:1 1 260px;height:46px;font-size:14px}
+.link .btn{height:46px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:80}.toast.on{opacity:1}
+@media(max-width:760px){.sheet{grid-template-columns:minmax(0,1fr)}.pic{max-width:440px}.kit{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.piece.post{grid-column:1/-1}.frame.sq canvas{max-width:320px}}
+@media(max-width:480px){.tools{width:100%}.tools .btn{flex:1}.box{padding:20px 16px}}
+</style>
+</head>
+<body>
+<header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
+<div class="band"><a href="top30.html"><img src="img/pobres-over30.png" alt="Pobres Over 30, 2026"></a></div>
+<main class="w" id="app"></main>
+
+<div class="mod" id="mod" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="box">
+    <button class="x" id="close" aria-label="Fechar"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+    <h2 id="mt">Compartilhe sua página</h2>
+    <p>Baixe as peças prontas e poste no Instagram. Os dados saem desta página.</p>
+    <div class="kit">
+      <div class="piece"><h3>Story <span>1080 × 1920</span></h3><div class="frame v"><canvas id="cvS"></canvas></div><button class="btn" id="dS">Baixar story</button></div>
+      <div class="piece"><h3>Reel <span>1080 × 1920 · 8s</span></h3><div class="frame v"><canvas id="cvR"></canvas></div><div class="prog" id="pr"><i></i></div><button class="btn" id="dR">Gerar e baixar reel</button><div class="msg" id="mR"></div></div>
+      <div class="piece post"><h3>Post <span>1080 × 1080</span></h3><div class="frame sq"><canvas id="cvP"></canvas></div><button class="btn" id="dP">Baixar post</button></div>
+    </div>
+    <div class="link"><input class="inp" id="url" readonly aria-label="Link da página"><button class="btn ghost" id="copy">Copiar link</button></div>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="js/conta.js"></script>
+<script src="js/criativos.js"></script>
+<script>
+{
+const $=s=>document.querySelector(s),esc=Conta.esc;
+const PERSON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
+const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2400)};
+const slug=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+let p=null,assets=null,loop=0;
+
+function render(){
+  const id=location.hash.slice(1);p=id?Conta.pessoa(id):null;
+  if(!p){$('#app').innerHTML=`<div class="notfound"><h1>Pessoa não encontrada.</h1><p>Esse link pode estar errado ou a pessoa ainda não está na lista.</p><a class="btn" href="index.html">Ver últimos inscritos</a></div>`;return}
+  document.title=`${p.nome} · Pobres Over 30`;
+  const me=Conta.atual(),mine=me&&me.id===p.id,c=Conta.cotacao(p.id),ig=(p.instagram||'').replace(/^@/,'');
+  const hist=p.historia||p.bio||'';
+  $('#app').innerHTML=`<div class="bar"><div class="crumb"><a href="${p.rank?'top30.html':'index.html'}">${p.rank?'Pobres Over 30':'Últimos inscritos'}</a> / ${esc(p.nome)}</div><div class="tools">${mine?'<a class="btn ghost" href="perfil.html">Editar minha página</a>':''}<button class="btn" id="share">Compartilhar</button></div></div>
+  <section class="sheet">
+    <div class="pic"><div class="ph">${p.foto?`<img src="${p.foto}" alt="Foto de ${esc(p.nome)}">`:PERSON}<span class="mk ${c.dir}">${ARR[c.dir]}${c.dir==='up'?'+':'−'}${c.pct}%</span>${p.rank?`<span class="rk">${p.rank}</span>`:''}</div></div>
+    <div class="info">
+      <span class="tag">${p.rank?`Pobres Over 30 · Nº ${p.rank}`:'Pobres Over 30 · 2026'}</span>
+      <h1>${esc(p.nome)}</h1>
+      <div class="meta"><span><b>${Conta.idade(p.nascimento)}</b> anos</span><span>${esc(p.cidade)}, ${p.uf}</span></div>
+      <span class="area">${esc(p.area)}</span>
+      ${p.frase?`<blockquote>“${esc(p.frase)}”</blockquote>`:''}
+      ${hist?`<div class="hist"><h2>A história</h2><p>${esc(hist)}</p></div>`:''}
+      ${ig?`<a class="ig" href="https://instagram.com/${encodeURIComponent(ig)}">@${esc(ig)}</a>`:''}
+    </div></section>`;
+  $('#share').onclick=openKit;
+}
+
+async function openKit(){
+  $('#mod').classList.add('on');document.body.style.overflow='hidden';
+  const me=Conta.atual();$('#mt').textContent=me&&me.id===p.id?'Compartilhe sua página':'Compartilhe esta página';
+  $('#url').value=location.href;
+  assets=await Criativos.prep(p);
+  Criativos.story($('#cvS'),p,assets);
+  Criativos.post($('#cvP'),p,assets);
+  const t0=performance.now(),cv=$('#cvR');cancelAnimationFrame(loop);
+  const f=()=>{const t=((performance.now()-t0)/1000)%(Criativos.REEL+1.5);Criativos.story(cv,p,assets,t);loop=requestAnimationFrame(f)};f();
+}
+function closeKit(){$('#mod').classList.remove('on');document.body.style.overflow='';cancelAnimationFrame(loop)}
+$('#close').onclick=closeKit;
+$('#mod').onclick=e=>{if(e.target.id==='mod')closeKit()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeKit()});
+const png=cv=>new Promise(r=>cv.toBlob(r,'image/png'));
+const nome=k=>`pobres-${slug(p.nome)}-${k}`;
+$('#dS').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvS')),nome('story.png'));if(ok)toast('Story pronto')};
+$('#dP').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvP')),nome('post.png'));if(ok)toast('Post pronto')};
+$('#dR').onclick=async()=>{
+  const b=$('#dR');b.disabled=true;b.textContent='Gravando reel...';$('#pr').classList.add('on');$('#mR').textContent='Leva uns 9 segundos. Deixe esta aba aberta.';
+  try{const {blob,ext}=await Criativos.gravarReel(p,assets,k=>$('#pr i').style.width=(k*100)+'%');
+    const ok=await Conta.baixar(blob,nome('reel.'+ext));
+    $('#mR').textContent=ext==='webm'?'Vídeo salvo em WebM. Se o Instagram recusar, converta para MP4.':'';if(ok)toast('Reel pronto')}
+  catch(x){$('#mR').textContent=x.message}
+  b.disabled=false;b.textContent='Gerar e baixar reel';$('#pr').classList.remove('on');$('#pr i').style.width='0';
+};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#url').value);toast('Link copiado')}catch(e){$('#url').select();toast('Selecione e copie o link')}};
+window.addEventListener('hashchange',()=>{closeKit();render()});
+render();
+}
+</script>
+</body>
+</html>
