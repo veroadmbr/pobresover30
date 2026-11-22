@@ -49,6 +49,7 @@ h1,h2,h3{font-family:"Playfair Display",Georgia,serif;font-weight:400;margin:0;l
 .find{height:40px;width:240px;border:1px solid var(--line);border-radius:999px;background:var(--card);padding:0 16px;font-size:16px}
 
 /* cards */
+.vazio{text-align:center;padding:56px 20px 64px;border:1px dashed var(--line);border-radius:12px;margin-bottom:34px}.vazio[hidden]{display:none}.vazio h3{font:600 clamp(24px,3vw,32px)/1.15 "Playfair Display",Georgia,serif}.vazio p{color:var(--mut);max-width:46ch;margin:10px auto 22px}
 .podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-bottom:34px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:26px 18px;padding-bottom:40px}
 .ph{position:relative;aspect-ratio:1;background:linear-gradient(135deg,var(--ph1),var(--ph2));overflow:hidden;display:grid;place-items:center;color:light-dark(#9c9c9c,#575757)}
@@ -95,7 +96,7 @@ footer b{font:700 26px "Playfair Display",Georgia,serif;color:#fff}
   </section>
 
   <div class="w">
-    <p class="intro">Os 30 nomes que passaram dos 30 e seguem firmes na lista. O ranking de quem mais se destacou este ano, com a cotação do dia de cada um.</p>
+    <p class="intro">Os 30 nomes que passaram dos 30 e seguem firmes na lista. O ranking muda todo dia: quem mais cai na cotação do dia sobe para o topo.</p>
 
     <div class="bar">
       <h2>Os 30 Tops</h2>
@@ -105,9 +106,10 @@ footer b{font:700 26px "Playfair Display",Georgia,serif;color:#fff}
       </div>
     </div>
 
+    <section class="vazio" id="vazio" hidden><h3>A lista de 2026 ainda está vazia.</h3><p>Os 30 primeiros nomes vão aparecer aqui assim que as inscrições começarem. Você tem 30 anos ou mais?</p><a class="btn" href="inscricao.html">Inscreva-se na lista</a></section>
     <section class="podium" id="podium" aria-label="Top 3"></section>
     <section class="grid" id="grid" aria-label="Posições 4 a 30"></section>
-    <p class="note">Clique em um nome para ver a página. Nomes, cidades e histórias de exemplo.</p>
+    <p class="note">Clique em um nome para ver a página.</p>
     <section class="back"><div><h2>Os Últimos Inscritos</h2><p>Veja quem acabou de entrar para a lista, em tempo real.</p></div><a class="go" href="inscritos.html">Ver outras inscrições →</a></section>
   </div>
 </main>
@@ -115,13 +117,14 @@ footer b{font:700 26px "Playfair Display",Georgia,serif;color:#fff}
 <footer><div class="w"><b>Pobres</b><span>© 2026 Pobres Media. Todos os direitos reservados.</span></div></footer>
 
 <script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
 <script>
 {
 const $=id=>document.getElementById(id);
 const PL='<svg class="pl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
 const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
 const esc=Conta.esc;
-const people=Conta.seeds().filter(x=>x.rank).map(x=>({...x,...Conta.cotacao(x.id)}));
+const people=Conta.ranking().slice(0,30);
 const card=p=>`<a class="pc-card" href="pessoa.html#${p.id}"><div class="ph">${p.foto?`<img src="${p.foto}" alt="">`:PL}<span class="rk${p.rank===1?' one':''}">${p.rank}</span><span class="mk ${p.dir}" aria-label="${p.dir==='up'?'Em alta':'Em baixa'}">${ARR[p.dir]}</span></div><div class="nm"><h3>${esc(p.nome)}</h3><span class="pc ${p.dir}">${p.dir==='up'?'+':'−'}${p.pct}%</span></div><div class="ct">${esc(p.cidade)}, ${p.uf} · ${Conta.idade(p.nascimento)} anos</div><div class="cat">${esc(p.area)}</div></a>`;
 function render(){
   const q=$('find').value.trim().toLowerCase(),s=srt.value;
@@ -131,7 +134,8 @@ function render(){
   $('podium').style.display=podium?'grid':'none';
   $('podium').innerHTML=podium?vis.slice(0,3).map(card).join(''):'';
   const rest=podium?vis.slice(3):vis;
-  $('grid').innerHTML=rest.length?rest.map(card).join(''):'<p class="empty">Ninguém encontrado.</p>';
+  $('grid').innerHTML=rest.length?rest.map(card).join(''):(people.length?'<p class="empty">Ninguém encontrado.</p>':'');
+  $('vazio').hidden=people.length>0;
 }
 const srt=PSelect($('sort'),{items:[{value:'rank',label:'Ranking'},{value:'up',label:'Em alta primeiro'},{value:'dn',label:'Em baixa primeiro'}],value:'rank',label:'Ordenar',onChange:render});
 render();

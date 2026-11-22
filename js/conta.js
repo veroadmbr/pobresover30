@@ -122,28 +122,15 @@
     return [...out];
   }
 
-  /* ---------- pessoas de exemplo (fixas, para as páginas poderem ser compartilhadas) ---------- */
-  const SEED_NOMES = ['Ricardo Almeida', 'Fernanda Costa', 'Paulo Henrique', 'Juliana Ribeiro', 'Roberto Carvalho', 'Patrícia Melo', 'Sérgio Monteiro', 'Cláudia Azevedo', 'Eduardo Fonseca', 'Mônica Teixeira', 'Fábio Cardoso', 'Renata Araújo', 'Alexandre Pires', 'Luciana Moreira', 'Gustavo Correia', 'Adriana Campos', 'Leonardo Brito', 'Simone Rocha', 'Rodrigo Tavares', 'Daniela Cunha', 'Marcelo Viana', 'Cristina Lacerda', 'Fernando Peixoto', 'Beatriz Sampaio', 'Maurício Neves', 'Tatiana Moraes', 'Vinícius Santana', 'Aline Figueiredo', 'César Quintana', 'Débora Antunes',
-    'Ana Souza', 'Bruno Lima', 'Carla Mendes', 'Diego Rocha', 'Elisa Prado', 'Felipe Nunes', 'Gabriela Reis', 'Henrique Alves', 'Isabela Torres', 'João Batista', 'Larissa Gomes', 'Marcos Vieira', 'Natália Freitas', 'Otávio Ramos', 'Paula Castro', 'Rafael Moura', 'Sofia Barros', 'Thiago Dias', 'Vanessa Lopes', 'Wagner Pinto', 'Yasmin Duarte', 'Lucas Martins', 'Camila Rezende', 'André Farias'];
-  const SEED_CID = [['Santos', 'SP'], ['São Paulo', 'SP'], ['Rio de Janeiro', 'RJ'], ['Belo Horizonte', 'MG'], ['Curitiba', 'PR'], ['Porto Alegre', 'RS'], ['Salvador', 'BA'], ['Recife', 'PE'], ['Fortaleza', 'CE'], ['Florianópolis', 'SC'], ['Goiânia', 'GO'], ['Campinas', 'SP'], ['Brasília', 'DF'], ['Vitória', 'ES'], ['Manaus', 'AM'], ['Belém', 'PA'], ['Natal', 'RN'], ['Guarujá', 'SP'], ['Niterói', 'RJ'], ['Londrina', 'PR']];
-  const T0 = Date.now();
-  const SEEDS = SEED_NOMES.map((nome, i) => {
-    const r = rngOf('seed' + i), id = 'p' + (i + 1);
-    const [cidade, uf] = pickR(r, SEED_CID);
-    const area = r() < .55 ? pickR(r, ESPECIAIS) : pickR(r, GERAIS.slice(0, -1));
-    const ano = new Date().getFullYear() - (31 + Math.floor(r() * 30));
-    const nascimento = `${ano}-${String(1 + Math.floor(r() * 12)).padStart(2, '0')}-${String(1 + Math.floor(r() * 28)).padStart(2, '0')}`;
-    const p = { id, nome, cidade, uf, area, nascimento, foto: '', instagram: '', exemplo: true, rank: i < 30 ? i + 1 : null, criado: T0 - (i < 30 ? 86400000 * (40 + i) : ((i - 30) * 7 + 2) * 60000) };
-    p.historia = historia(p, r); p.frase = pickR(r, FRASES);
-    return p;
-  });
+  /* site limpo: sem pessoas de exemplo */
+  const SEEDS = [];
 
   const Conta = {
     esc, idade, faltaPara30, cotacao, historia, historias, rngOf,
     ESPECIAIS, GERAIS,
     users: () => ls.get(K, []),
     seeds: () => SEEDS,
-    pessoa(id) { return Conta.users().find(u => u.id === id) || SEEDS.find(s => s.id === id) || null },
+    pessoa(id) { const r = Conta.ranking().find(u => u.id === id); return r ? (r.rank <= 30 ? r : { ...r, rank: null }) : null },
     atual() { const id = ls.get(S, null); return id ? Conta.users().find(u => u.id === id) || null : null },
     async criar(d) {
       const us = Conta.users(), email = d.email.trim().toLowerCase();
@@ -168,6 +155,12 @@
       return u;
     },
     sair() { ls.del(S) },
+    remover(id) { const us = Conta.users().filter(u => u.id !== id); ls.set(K, us); if (ls.get(S, null) === id) ls.del(S) },
+    /* ranking do dia: quem mais caiu na cotação fica no topo (o mais pobre do dia é o nº 1) */
+    ranking() {
+      const v = c => (c.dir === 'dn' ? 1 : -1) * parseFloat(c.pct.replace(',', '.'));
+      return Conta.users().map(u => ({ ...u, ...Conta.cotacao(u.id) })).sort((a, b) => v(b) - v(a) || a.criado - b.criado).map((u, i) => ({ ...u, rank: i + 1 }));
+    },
     atualizar(patch) {
       const me = Conta.atual(); if (!me) throw new Error('Sessão expirada. Entre de novo.');
       const us = Conta.users(), i = us.findIndex(u => u.id === me.id);

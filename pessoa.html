@@ -83,6 +83,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 <div class="toast" id="toast" role="status"></div>
 
 <script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
 <script src="js/criativos.js"></script>
 <script>
 {
@@ -96,6 +97,7 @@ let p=null,assets=null,loop=0;
 function render(){
   const id=location.hash.slice(1);p=id?Conta.pessoa(id):null;
   if(!p){$('#app').innerHTML=`<div class="notfound"><h1>Pessoa não encontrada.</h1><p>Esse link pode estar errado ou a pessoa ainda não está na lista.</p><a class="btn" href="index.html">Ver os 30 tops</a></div>`;return}
+  Metricas.track('perfil_visto',{pessoa:p.id});
   document.title=`${p.nome} · Pobres Over 30`;
   const me=Conta.atual(),mine=me&&me.id===p.id,c=Conta.cotacao(p.id),ig=(p.instagram||'').replace(/^@/,'');
   const hist=p.historia||p.bio||'';
@@ -117,7 +119,7 @@ function render(){
 async function openKit(){
   $('#mod').classList.add('on');document.body.style.overflow='hidden';
   const me=Conta.atual();$('#mt').textContent=me&&me.id===p.id?'Compartilhe sua página':'Compartilhe esta página';
-  $('#url').value=location.href;
+  $('#url').value=location.href;window.Metricas&&Metricas.track('compartilhar_aberto',{pessoa:p.id});
   assets=await Criativos.prep(p);
   Criativos.story($('#cvS'),p,assets);
   Criativos.post($('#cvP'),p,assets);
@@ -130,17 +132,17 @@ $('#mod').onclick=e=>{if(e.target.id==='mod')closeKit()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeKit()});
 const png=cv=>new Promise(r=>cv.toBlob(r,'image/png'));
 const nome=k=>`pobres-${slug(p.nome)}-${k}`;
-$('#dS').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvS')),nome('story.png'));if(ok)toast('Story pronto')};
-$('#dP').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvP')),nome('post.png'));if(ok)toast('Post pronto')};
+$('#dS').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvS')),nome('story.png'));if(ok){toast('Story pronto');Metricas.track('download',{peca:'story'})}};
+$('#dP').onclick=async()=>{const ok=await Conta.baixar(await png($('#cvP')),nome('post.png'));if(ok){toast('Post pronto');Metricas.track('download',{peca:'post'})}};
 $('#dR').onclick=async()=>{
   const b=$('#dR');b.disabled=true;b.textContent='Gravando reel...';$('#pr').classList.add('on');$('#mR').textContent='Leva uns 9 segundos. Deixe esta aba aberta.';
   try{const {blob,ext}=await Criativos.gravarReel(p,assets,k=>$('#pr i').style.width=(k*100)+'%');
     const ok=await Conta.baixar(blob,nome('reel.'+ext));
-    $('#mR').textContent=ext==='webm'?'Vídeo salvo em WebM. Se o Instagram recusar, converta para MP4.':'';if(ok)toast('Reel pronto')}
+    $('#mR').textContent=ext==='webm'?'Vídeo salvo em WebM. Se o Instagram recusar, converta para MP4.':'';if(ok){toast('Reel pronto');Metricas.track('download',{peca:'reel'})}}
   catch(x){$('#mR').textContent=x.message}
   b.disabled=false;b.textContent='Gerar e baixar reel';$('#pr').classList.remove('on');$('#pr i').style.width='0';
 };
-$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#url').value);toast('Link copiado')}catch(e){$('#url').select();toast('Selecione e copie o link')}};
+$('#copy').onclick=async()=>{try{await navigator.clipboard.writeText($('#url').value);toast('Link copiado');Metricas.track('link_copiado')}catch(e){$('#url').select();toast('Selecione e copie o link')}};
 window.addEventListener('hashchange',()=>{closeKit();render()});
 render();
 }

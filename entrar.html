@@ -44,6 +44,7 @@ h1{font:400 clamp(30px,4.4vw,38px)/1.1 "Playfair Display",Georgia,serif;margin:0
   <p class="alt">Ainda não está na lista? <a href="inscricao.html">Inscreva-se</a></p>
 </main>
 <script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
 <script>
 {
 const $=s=>document.querySelector(s);
@@ -55,7 +56,7 @@ $('#f').onsubmit=async e=>{
   const em=$('#em').value,pw=$('#pw').value;
   if(!em.trim()||!pw){$('#err').textContent='Preencha e-mail e senha.';return}
   $('#go').disabled=true;$('#go').textContent='Entrando...';
-  try{await Conta.entrar(em,pw);location.href='perfil.html'}
+  try{await Conta.entrar(em,pw);window.Metricas&&Metricas.track('login');location.href='perfil.html'}
   catch(x){$('#err').textContent=x.message;$('#go').disabled=false;$('#go').textContent='Entrar'}
 };
 }

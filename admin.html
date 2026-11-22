@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin Pobres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/pobres.css">
+<style>
+/* VOICE: painel de redação, sóbrio e direto
+   IDEA: a mesa de métricas de uma revista: números do período, tendência e quem entrou
+   PICTURE: linha de visitas por dia em destaque, com os números-chave acima
+   COLOUR and TYPE: branco, preto, verde e vermelho só para variação; Playfair nos números, Work Sans no resto
+   LAYOUT: cabeçalho preto, filtros numa linha, abas, grade de painéis */
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Work Sans",system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Playfair Display",Georgia,serif;font-weight:600;margin:0;line-height:1.1}
+.w{max-width:1240px;margin:0 auto;padding:0 20px}
+.hb .tagadm{grid-column:1;justify-self:start;font:600 11px "Work Sans";text-transform:uppercase;letter-spacing:.06em;color:#bbb}
+.hb .out{grid-column:3;justify-self:end;background:none;border:1px solid #fff;color:#fff;height:36px;padding:0 16px;border-radius:999px;font:600 13px "Work Sans";cursor:pointer}
+.hb .out:hover{background:#fff;color:#000}
+/* gate */
+.gate{max-width:420px;margin:0 auto;padding:clamp(40px,8vw,90px) 20px}
+.gate h1{font-size:34px;text-align:center}.gate p{color:var(--mut);text-align:center;margin:8px 0 26px}
+.gate .btn{width:100%}
+/* topo */
+.top{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;padding:28px 0 18px}
+.top h1{font-size:clamp(28px,3.4vw,40px)}
+.top p{color:var(--mut);margin:4px 0 0;font-size:13px}
+.ctl{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.ctl .sm{width:170px}
+.ctl .btn{height:40px;padding:0 18px;font-size:13px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:12px 14px;font:600 14px "Work Sans";color:var(--mut);cursor:pointer;white-space:nowrap}
+.tabs button.on{color:var(--ink);border-color:var(--ink)}
+.tabs .n{font-weight:500;color:var(--mut);margin-left:4px}
+.pane{padding:22px 0 50px}
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi span{font-size:12px;color:var(--mut)}
+.kpi b{display:block;font:600 clamp(26px,2.6vw,34px)/1.1 "Playfair Display",Georgia,serif;margin-top:6px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kpi i{font-style:normal;font-size:12px;font-weight:600;display:block;margin-top:6px}
+.kpi i.up{color:var(--up)}.kpi i.dn{color:var(--dn)}.kpi i.eq{color:var(--mut)}
+/* painéis */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.s12{grid-column:span 12}.s8{grid-column:span 8}.s6{grid-column:span 6}.s4{grid-column:span 4}
+.card h3{font-size:18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.card h3 small{font:500 12px "Work Sans";color:var(--mut)}
+.fig{position:relative;height:280px;margin-top:12px}.fig.short{height:220px}
+.fig svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:12px;padding:8px 10px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-110%);opacity:0;transition:opacity .1s;z-index:5}
+.tip b{display:block;font-size:14px}
+.rows{margin-top:12px;display:grid;gap:10px}
+.r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:13px}
+.r .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.r .val{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.r .trk{grid-column:1/-1;height:8px;background:var(--soft);border-radius:4px;overflow:hidden}
+.r .trk i{display:block;height:100%;background:var(--ink);border-radius:4px;min-width:2px}
+.none{color:var(--mut);font-size:13px;padding:20px 0;text-align:center}
+.funil .r .val small{font-weight:400;color:var(--mut);margin-left:6px}
+/* tabelas */
+.tbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.tbar .inp{height:42px;max-width:340px;font-size:15px}
+.tbar .btn{height:42px;font-size:13px;padding:0 18px}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td a{color:var(--ink);font-weight:600}
+.act{display:flex;gap:6px;justify-content:flex-end}
+.mini{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font:600 12px "Work Sans";cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap}
+.mini:hover{border-color:var(--ink)}.mini.del:hover{border-color:var(--dn);color:var(--dn)}
+.who{display:flex;gap:10px;align-items:center}
+.who .av{width:34px;height:34px;border-radius:50%;background:var(--soft);overflow:hidden;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600}
+.who .av img{width:100%;height:100%;object-fit:cover}
+.chip{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--soft);font-size:11px;font-weight:600;white-space:nowrap}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--mut)}
+/* modal */
+.mod{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:60;padding:16px}.mod.on{display:grid}
+.box{background:var(--card);border-radius:12px;padding:24px;width:min(420px,100%)}
+.box h2{font-size:24px}.box p{color:var(--mut);margin:8px 0 20px;font-size:14px}
+.box .acts{display:flex;gap:10px;justify-content:flex-end}
+.box .btn{height:44px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:80}.toast.on{opacity:1}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.s8,.s4{grid-column:span 12}.s6{grid-column:span 6}}
+.hb .tagadm{white-space:nowrap}
+@media(max-width:600px){.hb .tagadm{display:none}.hb .logo{grid-column:1}}
+@media(max-width:700px){.s6{grid-column:span 12}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ctl{width:100%}.ctl .sm{flex:1}
+ table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10px 14px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7em;margin-inline-start:-7.5em;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding-top:2px}.stack td.num{text-align:start}.stack .act{justify-content:flex-start}}
+</style>
+</head>
+<body>
+<header class="hd"><div class="hb"><span class="tagadm">Admin</span><a href="index.html" class="logo">Pobres</a><button class="out" id="out" hidden>Sair</button></div></header>
+<main id="app"></main>
+<div class="mod" id="mod" role="dialog" aria-modal="true"><div class="box"><h2 id="mT"></h2><p id="mP"></p><div class="acts"><button class="btn ghost" id="mN">Cancelar</button><button class="btn red" id="mY">Confirmar</button></div></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="data/cidades.js"></script>
+<script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
+<script>
+{
+/* Acesso do admin (troque a senha: gere o hash de "pobres-admin:<email>:<senha>" em SHA-256) */
+const ADMIN_EMAIL='admin@pobres.com.br';
+const ADMIN_HASH='09e780b07ce988d6ded56ee167d5fb120d3862d77fe3188ea895efc27b85d10b';
+const $=s=>document.querySelector(s),esc=Conta.esc,app=$('#app');
+const DIA=864e5,fmt=n=>n.toLocaleString('pt-BR');
+const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)};
+async function sha(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return ''}}
+const logged=()=>{try{return sessionStorage.getItem('pobres-admin')===ADMIN_HASH}catch(e){return false}};
+
+function gate(){
+  $('#out').hidden=true;
+  app.innerHTML=`<form class="gate" id="g" novalidate><h1>Painel Pobres</h1><p>Acesso restrito à equipe.</p>
+  <label class="field"><span class="lb">E-mail</span><input class="inp" id="ge" type="email" autocomplete="username" placeholder="admin@pobres.com.br"></label>
+  <label class="field"><span class="lb">Senha</span><span class="pw"><input class="inp" id="gp" type="password" autocomplete="current-password" placeholder="Senha"><button type="button" class="eye" id="eye" aria-label="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+  <button class="btn">Entrar no painel</button><div class="err" id="ge2"></div></form>`;
+  $('#eye').onclick=()=>{const i=$('#gp');i.type=i.type==='password'?'text':'password'};
+  $('#g').onsubmit=async e=>{e.preventDefault();const em=$('#ge').value.trim().toLowerCase(),pw=$('#gp').value;
+    const h=await sha(`pobres-admin:${em}:${pw}`);
+    if(em===ADMIN_EMAIL&&h===ADMIN_HASH){try{sessionStorage.setItem('pobres-admin',h)}catch(x){}painel()}else $('#ge2').textContent='E-mail ou senha incorretos.'};
+}
+
+/* ---------- dados ---------- */
+let per='30',tab='geral',q='',S={};
+const PER=[{value:'1',label:'Hoje'},{value:'7',label:'Últimos 7 dias'},{value:'30',label:'Últimos 30 dias'},{value:'90',label:'Últimos 90 dias'},{value:'all',label:'Todo o período'}];
+const ini=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()};
+function janela(){
+  const hoje=ini(Date.now()),all=Metricas.todos(),us=Conta.users();
+  let n=per==='all'?Math.max(7,Math.ceil((hoje-ini(Math.min(...all.map(x=>x.t),...us.map(u=>u.criado),Date.now())))/DIA)+1):+per;
+  const de=hoje-(n-1)*DIA,ate=hoje+DIA,pde=de-n*DIA;
+  return {n,de,ate,pde,all,us};
+}
+function calc(){
+  const {n,de,ate,pde,all,us}=janela();
+  const dentro=(t,a,b)=>t>=a&&t<b;
+  const vis=all.filter(x=>x.tipo==='visita'&&dentro(x.t,de,ate)),visP=all.filter(x=>x.tipo==='visita'&&dentro(x.t,pde,de));
+  const ev=all.filter(x=>x.tipo==='evento'&&dentro(x.t,de,ate)),evP=all.filter(x=>x.tipo==='evento'&&dentro(x.t,pde,de));
+  const ins=us.filter(u=>dentro(u.criado,de,ate)),insP=us.filter(u=>dentro(u.criado,pde,de));
+  const uniq=a=>new Set(a.map(x=>x.vid)).size;
+  const cnt=(a,nome)=>a.filter(x=>x.nome===nome).length;
+  const conv=(i,v)=>v?Math.min(100,i/v*100):0;
+  const dias=Array.from({length:n},(_,i)=>{const d=de+i*DIA;return{d,v:vis.filter(x=>dentro(x.t,d,d+DIA)).length,u:uniq(vis.filter(x=>dentro(x.t,d,d+DIA))),i:ins.filter(u=>dentro(u.criado,d,d+DIA)).length}});
+  const grp=(a,f)=>{const m=new Map();a.forEach(x=>{const k=f(x);if(k!=null&&k!=='')m.set(k,(m.get(k)||0)+1)});return [...m].sort((a,b)=>b[1]-a[1])};
+  const PAG={index:'Top 30 (início)',inscritos:'Últimos inscritos',inscricao:'Inscrição',entrar:'Entrar',perfil:'Perfil',pessoa:'Página da pessoa',top30:'Top 30 (link antigo)'};
+  const passos=[1,2,3,4,5,6,7].map(p=>({p,n:new Set(ev.filter(x=>x.nome==='inscricao_passo'&&x.passo===p).map(x=>x.sid)).size}));
+  const faixa=u=>{const a=Conta.idade(u.nascimento);return a<40?'30 a 39':a<50?'40 a 49':a<60?'50 a 59':'60 ou mais'};
+  S={n,de,vis,visP,ev,evP,ins,insP,us,dias,
+    k:{v:[vis.length,visP.length],u:[uniq(vis),uniq(visP)],i:[ins.length,insP.length],c:[conv(ins.length,uniq(vis)),conv(insP.length,uniq(visP))],s:[cnt(ev,'compartilhar_aberto'),cnt(evP,'compartilhar_aberto')],d:[cnt(ev,'download'),cnt(evP,'download')]},
+    pags:grp(vis,x=>PAG[x.pagina]||x.pagina),orig:grp(vis,x=>x.origem),disp:grp(vis,x=>x.disp),
+    areas:grp(ins,u=>u.area),ufs:grp(ins,u=>u.uf),idades:grp(ins,faixa).sort((a,b)=>a[0].localeCompare(b[0])),
+    pecas:grp(ev.filter(x=>x.nome==='download'),x=>({story:'Story',post:'Post',reel:'Reel'}[x.peca]||x.peca)),
+    passos,concl:new Set(ev.filter(x=>x.nome==='inscricao_concluida').map(x=>x.sid)).size,recus:cnt(ev,'inscricao_recusada_idade'),
+    evNomes:grp(ev,x=>x.nome)};
+}
+
+/* ---------- desenho ---------- */
+const delta=(a,b,pct)=>{if(!b&&!a)return'<i class="eq">sem comparação</i>';if(!b)return'<i class="up">novo no período</i>';const d=pct?a-b:(a-b)/b*100;const c=Math.abs(d)<.05?'eq':d>0?'up':'dn';return `<i class="${c}">${d>0?'+':d<0?'−':''}${Math.abs(d).toFixed(1).replace('.',',')}${pct?' p.p.':'%'} vs. anterior</i>`};
+const rows=(arr,tot,lim=8,lab=x=>x)=>arr.length?`<div class="rows">${arr.slice(0,lim).map(([k,v])=>`<div class="r"><span class="lbl">${esc(lab(k))}</span><span class="val">${fmt(v)}</span><span class="trk"><i style="width:${(v/(tot||arr[0][1])*100).toFixed(1)}%"></i></span></div>`).join('')}</div>`:'<div class="none">Sem dados no período.</div>';
+const ORIG={direto:'Direto ou sem origem',instagram:'Instagram',facebook:'Facebook',whatsapp:'WhatsApp',google:'Google',x:'X',tiktok:'TikTok',linkedin:'LinkedIn'};
+const DISP={celular:'Celular',computador:'Computador',tablet:'Tablet'};
+const dLbl=(d,short)=>new Date(d).toLocaleDateString('pt-BR',short?{day:'2-digit',month:'2-digit'}:{weekday:'short',day:'2-digit',month:'short'});
+
+function geral(){
+  const k=S.k,tv=S.vis.length;
+  const kp=(l,v,p,f=fmt,pct)=>`<div class="kpi"><span>${l}</span><b>${f(v)}</b>${delta(v,p,pct)}</div>`;
+  const p1=S.passos[0].n||0;
+  return `<div class="kpis">${kp('Visitas',k.v[0],k.v[1])}${kp('Visitantes únicos',k.u[0],k.u[1])}${kp('Inscrições',k.i[0],k.i[1])}${kp('Conversão',k.c[0],k.c[1],x=>x.toFixed(1).replace('.',',')+'%',true)}${kp('Compartilhamentos',k.s[0],k.s[1])}${kp('Downloads de peças',k.d[0],k.d[1])}</div>
+  <div class="grid">
+    <div class="card s12"><h3>Visitas por dia <small>${fmt(tv)} no período · passe o mouse para ver cada dia</small></h3><div class="fig" id="fV"><svg></svg><div class="tip"></div></div></div>
+    <div class="card s8"><h3>Inscrições por dia <small>${fmt(S.ins.length)} no período</small></h3><div class="fig short" id="fI"><svg></svg><div class="tip"></div></div></div>
+    <div class="card s4 funil"><h3>Funil da inscrição <small>sessões por passo</small></h3>${p1?`<div class="rows">${S.passos.map(x=>`<div class="r"><span class="lbl">Passo ${x.p} · ${['Nome','Nascimento','Cidade','Área','História','Foto','Conta'][x.p-1]}</span><span class="val">${fmt(x.n)}<small>${(x.n/p1*100).toFixed(0)}%</small></span><span class="trk"><i style="width:${x.n/p1*100}%"></i></span></div>`).join('')}<div class="r"><span class="lbl"><b>Concluíram</b></span><span class="val">${fmt(S.concl)}<small>${Math.min(100,S.concl/p1*100).toFixed(0)}%</small></span><span class="trk"><i style="width:${Math.min(100,S.concl/p1*100)}%"></i></span></div></div><div class="foot"><span>Recusados por idade: ${fmt(S.recus)}</span></div>`:'<div class="none">Ninguém começou a inscrição no período.</div>'}</div>
+    <div class="card s4"><h3>Páginas mais vistas</h3>${rows(S.pags,tv)}</div>
+    <div class="card s4"><h3>Origem das visitas</h3>${rows(S.orig,tv,8,x=>ORIG[x]||x)}</div>
+    <div class="card s4"><h3>Dispositivos</h3>${rows(S.disp,tv,3,x=>DISP[x]||x)}</div>
+    <div class="card s4"><h3>Áreas dos inscritos</h3>${rows(S.areas,S.ins.length,8)}</div>
+    <div class="card s4"><h3>Estados dos inscritos</h3>${rows(S.ufs,S.ins.length,8,u=>{const e=window.BR&&BR.estados.find(x=>x[0]===u);return e?`${e[1]} (${u})`:u})}</div>
+    <div class="card s4"><h3>Faixa etária dos inscritos</h3>${rows(S.idades,S.ins.length,4,x=>x+' anos')}</div>
+    <div class="card s6"><h3>Peças baixadas</h3>${rows(S.pecas,S.k.d[0],3)}</div>
+    <div class="card s6"><h3>Cadastro total</h3><div class="rows"><div class="r"><span class="lbl">Inscritos desde o início</span><span class="val">${fmt(S.us.length)}</span></div><div class="r"><span class="lbl">No top 30 hoje</span><span class="val">${fmt(Math.min(30,S.us.length))}</span></div><div class="r"><span class="lbl">Com foto</span><span class="val">${fmt(S.us.filter(u=>u.foto).length)}</span></div><div class="r"><span class="lbl">Com história</span><span class="val">${fmt(S.us.filter(u=>u.historia||u.bio).length)}</span></div><div class="r"><span class="lbl">Idade média</span><span class="val">${S.us.length?Math.round(S.us.reduce((a,u)=>a+Conta.idade(u.nascimento),0)/S.us.length)+' anos':'—'}</span></div></div></div>
+  </div>`;
+}
+/* gráfico de linha (visitas) e de barras (inscrições), com tooltip */
+function linha(el,key,lbl){
+  const svg=el.querySelector('svg'),tip=el.querySelector('.tip'),data=S.dias;
+  const draw=()=>{
+    const W=el.clientWidth,H=el.clientHeight,pl=36,pr=10,pt=10,pb=26,iw=W-pl-pr,ih=H-pt-pb;
+    const max=Math.max(4,...data.map(d=>d[key])),nice=Math.ceil(max/4)*4;
+    const x=i=>pl+(data.length<2?iw/2:i/(data.length-1)*iw),y=v=>pt+ih-v/nice*ih;
+    const step=Math.max(1,Math.ceil(data.length/(W<520?4:8)));
+    let g='';for(let t=0;t<=4;t++){const v=nice/4*t;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${fmt(v)}</text>`}
+    data.forEach((d,i)=>{if(i%step===0||i===data.length-1&&data.length<=8)g+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--mut)">${dLbl(d.d,1)}</text>`});
+    const pts=data.map((d,i)=>`${x(i)},${y(d[key])}`).join(' ');
+    svg.innerHTML=g+`<polygon points="${pl},${y(0)} ${pts} ${x(data.length-1)},${y(0)}" fill="var(--ink)" opacity=".06"/><polyline points="${pts}" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>${data.length<=31?data.map((d,i)=>`<circle cx="${x(i)}" cy="${y(d[key])}" r="3" fill="var(--ink)"/>`).join(''):''}<line class="cx" y1="${pt}" y2="${pt+ih}" stroke="var(--mut)" stroke-dasharray="3 3" opacity="0"/><circle class="cd" r="5" fill="var(--card)" stroke="var(--ink)" stroke-width="2" opacity="0"/><rect x="${pl}" y="0" width="${iw}" height="${H}" fill="transparent"/>`;
+    const cx=svg.querySelector('.cx'),cd=svg.querySelector('.cd');
+    svg.onpointermove=e=>{const r=svg.getBoundingClientRect(),i=Math.max(0,Math.min(data.length-1,Math.round((e.clientX-r.left-pl)/(iw||1)*(data.length-1)))),d=data[i];
+      cx.setAttribute('x1',x(i));cx.setAttribute('x2',x(i));cx.setAttribute('opacity',1);cd.setAttribute('cx',x(i));cd.setAttribute('cy',y(d[key]));cd.setAttribute('opacity',1);
+      tip.innerHTML=`${dLbl(d.d)}<b>${fmt(d[key])} ${lbl}</b>${key==='v'?`${fmt(d.u)} visitantes únicos`:''}`;tip.style.left=Math.min(W-70,Math.max(70,x(i)))+'px';tip.style.top=y(d[key])+'px';tip.style.opacity=1};
+    svg.onpointerleave=()=>{tip.style.opacity=0;cx.setAttribute('opacity',0);cd.setAttribute('opacity',0)};
+  };
+  new ResizeObserver(draw).observe(el);
+}
+function barras(el){
+  const svg=el.querySelector('svg'),tip=el.querySelector('.tip'),data=S.dias;
+  const draw=()=>{
+    const W=el.clientWidth,H=el.clientHeight,pl=30,pr=6,pt=10,pb=26,iw=W-pl-pr,ih=H-pt-pb;
+    const max=Math.max(4,...data.map(d=>d.i)),nice=Math.ceil(max/4)*4,bw=iw/data.length,y=v=>pt+ih-v/nice*ih;
+    const step=Math.max(1,Math.ceil(data.length/(W<520?4:8)));
+    let g='';for(let t=0;t<=4;t++){const v=nice/4*t;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${pl-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${fmt(v)}</text>`}
+    data.forEach((d,i)=>{const h=ih-(y(d.i)-pt),x=pl+i*bw+Math.max(1,bw*.18),w=Math.max(2,bw*.64);
+      if(d.i)g+=`<path d="M${x},${y(0)} v${-(h-4)} q0,-4 4,-4 h${w-8} q4,0 4,4 v${h-4}z" fill="var(--ink)"/>`;
+      if(i%step===0)g+=`<text x="${pl+i*bw+bw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--mut)">${dLbl(d.d,1)}</text>`;
+      g+=`<rect data-i="${i}" x="${pl+i*bw}" y="${pt}" width="${bw}" height="${ih}" fill="transparent"/>`});
+    svg.innerHTML=g;
+    svg.onpointermove=e=>{const r=e.target.closest('rect[data-i]');if(!r)return;const i=+r.dataset.i,d=data[i];tip.innerHTML=`${dLbl(d.d)}<b>${fmt(d.i)} ${d.i===1?'inscrição':'inscrições'}</b>`;tip.style.left=Math.min(W-60,Math.max(60,pl+i*bw+bw/2))+'px';tip.style.top=y(d.i)+'px';tip.style.opacity=1};
+    svg.onpointerleave=()=>tip.style.opacity=0;
+  };
+  new ResizeObserver(draw).observe(el);
+}
+
+function inscritos(){
+  const t=q.toLowerCase(),rank=new Map(Conta.ranking().map(u=>[u.id,u.rank]));
+  const list=S.us.slice().sort((a,b)=>b.criado-a.criado).filter(u=>!t||[u.nome,u.email,u.cidade,u.uf,u.area,u.whatsapp].join(' ').toLowerCase().includes(t));
+  return `<div class="tbar"><input class="inp" id="q" type="search" placeholder="Buscar nome, e-mail, cidade, área" value="${esc(q)}" aria-label="Buscar inscritos"><button class="btn ghost" id="csv">Exportar CSV</button></div>
+  <div class="tw">${list.length?`<table class="stack"><thead><tr><th>Inscrito</th><th>Idade</th><th>Cidade</th><th>Área</th><th>Contato</th><th>Ranking</th><th>Inscrição</th><th></th></tr></thead><tbody>${list.map(u=>`<tr><td><span class="who"><span class="av">${u.foto?`<img src="${u.foto}" alt="">`:esc(Conta.iniciais(u.nome))}</span><a href="pessoa.html#${u.id}">${esc(u.nome)}</a></span></td><td class="num">${Conta.idade(u.nascimento)}</td><td>${esc(u.cidade)}, ${u.uf}</td><td><span class="chip">${esc(u.area)}</span></td><td>${esc(u.email)}<br><span style="color:var(--mut)">${esc(u.whatsapp)}</span></td><td class="num">${rank.get(u.id)<=30?'Nº '+rank.get(u.id):'—'}</td><td class="num">${new Date(u.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><div class="act"><a class="mini" href="pessoa.html#${u.id}">Ver</a><button class="mini del" data-del="${u.id}">Remover</button></div></td></tr>`).join('')}</tbody></table>`:`<div class="none">${S.us.length?'Nenhum inscrito encontrado.':'Ninguém se inscreveu ainda.'}</div>`}</div>
+  <div class="foot"><span>${fmt(list.length)} de ${fmt(S.us.length)} inscritos</span></div>`;
+}
+function visitas(){
+  const v=S.vis.slice().reverse().slice(0,300);
+  const PAGN={index:'Top 30',inscritos:'Últimos inscritos',inscricao:'Inscrição',entrar:'Entrar',perfil:'Perfil',pessoa:'Página da pessoa'};
+  return `<div class="tw">${v.length?`<table class="stack"><thead><tr><th>Quando</th><th>Página</th><th>Origem</th><th>Dispositivo</th><th>Visitante</th></tr></thead><tbody>${v.map(x=>`<tr><td class="num">${new Date(x.t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(PAGN[x.pagina]||x.pagina)}</td><td>${esc(ORIG[x.origem]||x.origem)}</td><td>${esc(DISP[x.disp]||x.disp)}</td><td><span class="chip">${esc(x.vid.slice(-6))}</span></td></tr>`).join('')}</tbody></table>`:'<div class="none">Nenhuma visita no período.</div>'}</div><div class="foot"><span>Mostrando as ${fmt(v.length)} visitas mais recentes do período</span></div>`;
+}
+const EVN={inscricao_passo:'Passo da inscrição',inscricao_concluida:'Inscrição concluída',inscricao_recusada_idade:'Recusado por idade',login:'Login',compartilhar_aberto:'Abriu compartilhar',download:'Baixou peça',link_copiado:'Copiou link',perfil_visto:'Viu página de pessoa'};
+function eventos(){
+  const e=S.ev.slice().reverse().slice(0,300);
+  const det=x=>x.passo?`Passo ${x.passo}`:x.peca?({story:'Story',post:'Post',reel:'Reel'}[x.peca]):x.idade?`${x.idade} anos`:x.area?esc(x.area):x.pessoa?`<a href="pessoa.html#${esc(x.pessoa)}">ver pessoa</a>`:'';
+  return `<div class="grid"><div class="card s4"><h3>Eventos no período</h3>${rows(S.evNomes,0,10,k=>EVN[k]||k)}</div>
+  <div class="s8" style="grid-column:span 8"><div class="tw">${e.length?`<table class="stack"><thead><tr><th>Quando</th><th>Evento</th><th>Detalhe</th><th>Origem</th></tr></thead><tbody>${e.map(x=>`<tr><td class="num">${new Date(x.t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(EVN[x.nome]||x.nome)}</td><td>${det(x)}</td><td>${esc(ORIG[x.origem]||x.origem)}</td></tr>`).join('')}</tbody></table>`:'<div class="none">Nenhum evento no período.</div>'}</div>
+  <div class="foot"><span>Mostrando os ${fmt(e.length)} eventos mais recentes</span><button class="mini del" id="zerar">Zerar métricas</button></div></div></div>`;
+}
+
+function confirmar(t,p,ok){$('#mT').textContent=t;$('#mP').textContent=p;$('#mod').classList.add('on');$('#mY').onclick=()=>{$('#mod').classList.remove('on');ok()};$('#mN').onclick=()=>$('#mod').classList.remove('on')}
+$('#mod').onclick=e=>{if(e.target.id==='mod')$('#mod').classList.remove('on')};
+
+function painel(){
+  if(!logged())return gate();
+  $('#out').hidden=false;
+  calc();
+  const tabs=[['geral','Visão geral'],['inscritos','Inscritos',S.us.length],['visitas','Visitas',S.vis.length],['eventos','Eventos',S.ev.length]];
+  app.innerHTML=`<div class="w"><div class="top"><div><h1>Painel</h1><p>Atualizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p></div><div class="ctl"><div class="sm" id="per"></div><button class="btn ghost" id="ref">Atualizar</button></div></div>
+  <nav class="tabs" role="tablist">${tabs.map(([k,l,n])=>`<button role="tab" data-t="${k}" class="${tab===k?'on':''}" aria-selected="${tab===k}">${l}${n!=null?`<span class="n">${fmt(n)}</span>`:''}</button>`).join('')}</nav>
+  <section class="pane">${{geral,inscritos,visitas,eventos}[tab]()}</section></div>`;
+  app.querySelectorAll('table.stack').forEach(tb=>{const h=[...tb.querySelectorAll('thead th')].map(th=>th.textContent);tb.querySelectorAll('tbody tr').forEach(tr=>[...tr.children].forEach((td,i)=>td.dataset.l=h[i]||''))});
+  PSelect($('#per'),{items:PER,value:per,label:'Período',onChange:v=>{per=v;painel()}});
+  $('#ref').onclick=()=>{painel();toast('Dados atualizados')};
+  app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;painel()});
+  if(tab==='geral'){linha($('#fV'),'v','visitas');barras($('#fI'))}
+  if(tab==='inscritos'){
+    const qi=$('#q');qi.oninput=()=>{q=qi.value;const pos=qi.selectionStart;painel();const n=$('#q');n.focus();n.setSelectionRange(pos,pos)};
+    $('#csv').onclick=async()=>{const cols=['Nome','Sobrenome','Nascimento','Idade','Cidade','UF','Área','E-mail','WhatsApp','Instagram','História','Inscrição'];
+      const cell=v=>`"${String(v??'').replace(/"/g,'""')}"`;
+      const lines=[cols.join(';'),...S.us.map(u=>[u.primeiro||u.nome,u.sobrenome||'',u.nascimento,Conta.idade(u.nascimento),u.cidade,u.uf,u.area,u.email,u.whatsapp,u.instagram,u.historia||u.bio||'',new Date(u.criado).toLocaleString('pt-BR')].map(cell).join(';'))];
+      const ok=await Conta.baixar(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),`pobres-inscritos-${new Date().toISOString().slice(0,10)}.csv`);if(ok)toast('CSV exportado')};
+    app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,()=>{Conta.remover(u.id);painel();toast('Inscrito removido')})});
+  }
+  if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',()=>{Metricas.limpar();painel();toast('Métricas zeradas')});
+}
+$('#out').onclick=()=>{try{sessionStorage.removeItem('pobres-admin')}catch(e){}gate()};
+painel();
+}
+</script>
+</body>
+</html>

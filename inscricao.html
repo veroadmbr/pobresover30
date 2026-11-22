@@ -72,6 +72,7 @@ main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:clamp(28px,6vw,64px
 
 <script src="data/cidades.js"></script>
 <script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
 <script>
 {
 const $=s=>document.querySelector(s), esc=Conta.esc;
@@ -95,6 +96,7 @@ const diasNoMes=(m,a)=>new Date(a||2000,m,0).getDate();
 
 function render(){
   $('#bar').style.width=(step/TOTAL*100)+'%';
+  window.Metricas&&Metricas.track('inscricao_passo',{passo:step+1});
   const steps=[s0,s1,s2,s3,sH,s4,s5];
   app.innerHTML=`<form class="pane" id="f" novalidate>${seal()}${steps[step].html()}</form>${step===0?'<p class="have">Já tem conta? <a href="entrar.html">Entrar</a></p>':''}`;
   steps[step].mount?.();
@@ -126,6 +128,7 @@ const s1={html:()=>head('Quando você nasceu?','A lista é só para quem tem 30 
     return true}};
 
 function reject(){
+  window.Metricas&&Metricas.track('inscricao_recusada_idade',{idade:Conta.idade(iso())});
   const f=Conta.faltaPara30(iso());
   $('#bar').style.width='0%';
   const parts=[f.anos?`${f.anos} ${f.anos>1?'anos':'ano'}`:'',f.dias?`${f.dias} ${f.dias>1?'dias':'dia'}`:''].filter(Boolean).join(' e ');
@@ -190,6 +193,7 @@ const s5={html:()=>head('Agora, sua conta.','É com o e-mail e a senha que você
   }};
 
 function done(u){
+  window.Metricas&&Metricas.track('inscricao_concluida',{uf:u.uf,area:u.area});
   const c=Conta.cotacao(u.id);
   $('#bar').style.width='100%';Conta.header($('#acct'));
   app.innerHTML=`<div class="pane done"><div class="step-n">Inscrição confirmada</div><h1 class="q">Bem-vindo à lista, ${esc(u.primeiro)}.</h1>

@@ -68,6 +68,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 
 <script src="data/cidades.js"></script>
 <script src="js/conta.js"></script>
+<script src="js/analytics.js"></script>
 <script>
 {
 const $=s=>document.querySelector(s),esc=Conta.esc;
@@ -93,7 +94,7 @@ function view(){
       ${me.frase?`<blockquote>“${esc(me.frase)}”</blockquote>`:`<blockquote class="empty">Sua frase de efeito aparece aqui.</blockquote>`}
       ${hist?`<p class="bio">${esc(hist)}</p>`:`<p class="bio empty">Conte como você chegou até aqui. Clique em Editar minha página.</p>`}
       ${ig?`<a class="ig" href="https://instagram.com/${encodeURIComponent(ig)}">@${esc(ig)}</a>`:''}
-      <div class="facts"><div>Inscrito nº<b>${(1284+posicao()).toLocaleString("pt-BR")}</b></div><div>Cotação de hoje<b style="color:var(--${cot.dir})">${cot.dir==='up'?'Em alta':'Em baixa'}</b></div><div>Na lista desde<b>${new Date(me.criado).toLocaleDateString('pt-BR',{month:'short',year:'numeric'}).replace('.','')}</b></div></div>
+      <div class="facts"><div>Inscrito nº<b>${posicao().toLocaleString("pt-BR")}</b></div><div>Cotação de hoje<b style="color:var(--${cot.dir})">${cot.dir==='up'?'Em alta':'Em baixa'}</b></div><div>Na lista desde<b>${new Date(me.criado).toLocaleDateString('pt-BR',{month:'short',year:'numeric'}).replace('.','')}</b></div></div>
     </div></section>`;
   $('#ed').onclick=edit;
   $('#out').onclick=()=>{Conta.sair();location.href='index.html'};
