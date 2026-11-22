@@ -50,7 +50,7 @@ textarea.inp{height:auto;min-height:120px;padding:14px 16px;resize:vertical;line
 .psel-empty{padding:12px;color:var(--mut);font-size:13px}
 
 /* senha */
-.pw{position:relative}.pw .inp{padding-right:56px}
+.pw{position:relative;display:block}.pw .inp{padding-right:56px}
 .eye{position:absolute;right:4px;top:4px;width:44px;height:44px;border:0;background:none;color:var(--mut);cursor:pointer;border-radius:8px;display:grid;place-items:center}
 .eye:hover{color:var(--ink)}
 .meter{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:8px}

@@ -55,6 +55,10 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 .ro{background:var(--soft);color:var(--mut)}
 .save{display:flex;gap:10px;justify-content:flex-end;margin-top:10px;flex-wrap:wrap;align-items:center}
 .saved{font-size:13px;color:var(--up);margin-right:auto}
+.row3{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,1fr);gap:10px}
+.age{display:inline-flex;margin-top:8px;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--soft)}.age.ok{color:var(--up)}.age.no{color:var(--dn)}
+.sec{border-top:1px solid var(--line);margin:8px 0 18px;padding-top:20px}.sec h3{font:600 20px "Playfair Display",Georgia,serif;margin:0}.sec>.hint{margin:4px 0 16px}
+@media(max-width:520px){.row3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.row3>:nth-child(3){grid-column:1/-1}}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70}.toast.on{opacity:1}
 @media(max-width:760px){.sheet,.edit{grid-template-columns:minmax(0,1fr)}.pic{max-width:420px}}
 @media(max-width:480px){.facts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.facts div:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0;border-top:1px solid var(--line)}.tools{width:100%}.tools .btn{flex:1}}
@@ -77,6 +81,8 @@ const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" strok
 let me=Conta.atual();
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 const posicao=()=>{const us=Conta.users().slice().sort((a,b)=>a.criado-b.criado);return us.findIndex(u=>u.id===me.id)+1};
+const EYE='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const app=document.getElementById('app');
 const data=iso=>{const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`};
 
 function bar(edit){return `<div class="bar"><div class="crumb"><a href="index.html">Pobres Over 30</a> / ${edit?'Editando minha página':'Minha página'}</div><div class="tools">${edit?'':`<a class="btn ghost" href="pessoa.html#${me.id}">Ver página pública</a><button class="btn" id="ed">Editar minha página</button><button class="btn ghost" id="out">Sair</button>`}</div></div>`}
@@ -114,8 +120,11 @@ function edit(){
       <label class="field"><span class="lb">Sua história <span class="count" id="cb"></span></span><textarea class="inp" id="bio" maxlength="600" placeholder="Como você chegou até aqui?">${esc(me.historia||me.bio||'')}</textarea></label>
       <div class="sug"><div class="sug-h"><span>Histórias prontas para você</span><button type="button" class="lnk" id="regen">Gerar outras</button></div><div id="opts"></div></div>
       <div class="two" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="field"><span class="lb">Instagram</span><input class="inp" id="ig" maxlength="31" placeholder="@seuperfil" value="${esc(me.instagram)}"></label><label class="field"><span class="lb">WhatsApp</span><input class="inp" id="wa" type="tel" inputmode="tel" value="${esc(me.whatsapp)}"></label></div>
-      <div class="two" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)"><label class="field"><span class="lb">E-mail</span><input class="inp ro" value="${esc(me.email)}" readonly></label><label class="field"><span class="lb">Nascimento</span><input class="inp ro" value="${data(me.nascimento)}" readonly></label></div>
-      <div class="hint" style="margin-top:-6px">E-mail e data de nascimento não podem ser alterados.</div>
+      <div class="field"><span class="lb">Data de nascimento</span><div class="row3"><div id="dd"></div><div id="mm"></div><div id="aa"></div></div><div id="ageTag" class="hint"></div></div>
+      <div class="sec"><h3>Acesso à conta</h3><p class="hint">Para trocar o e-mail de login ou a senha, confirme com a senha atual.</p>
+      <label class="field"><span class="lb">E-mail de login</span><input class="inp" id="em" type="email" autocomplete="email" value="${esc(me.email)}"></label>
+      <div class="two eq"><label class="field"><span class="lb">Nova senha</span><span class="pw"><input class="inp" id="np" type="password" autocomplete="new-password" placeholder="Deixe vazio para manter"><button type="button" class="eye" data-t="np" aria-label="Mostrar senha">${EYE}</button></span></label><label class="field"><span class="lb">Confirme a nova senha</span><span class="pw"><input class="inp" id="np2" type="password" autocomplete="new-password" placeholder="Repita a nova senha"><button type="button" class="eye" data-t="np2" aria-label="Mostrar senha">${EYE}</button></span></label></div>
+      <label class="field" id="curW"><span class="lb">Senha atual</span><span class="pw"><input class="inp" id="cp" type="password" autocomplete="current-password" placeholder="Obrigatória para trocar e-mail ou senha"><button type="button" class="eye" data-t="cp" aria-label="Mostrar senha">${EYE}</button></span></label></div>
       <div class="err" id="err"></div>
       <div class="save"><button type="button" class="btn ghost" id="cancel">Cancelar</button><button class="btn" id="sv">Salvar alterações</button></div>
     </div></form>`;
@@ -132,15 +141,34 @@ function edit(){
   $('#fp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{foto=await Conta.foto(f);$('#pv').innerHTML=`<img src="${foto}" alt="">`}catch(x){$('#err').textContent='Não deu pra ler essa imagem.'}};
   $('#rm')?.addEventListener('click',()=>{foto='';$('#pv').innerHTML=PERSON});
   $('#cancel').onclick=view;
-  $('#f').onsubmit=e=>{
+  /* nascimento com dropdowns próprios */
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],AN=new Date().getFullYear();
+  const [y0,m0,d0]=me.nascimento.split('-').map(Number);
+  const dias=n=>Array.from({length:n},(_,i)=>({value:i+1,label:String(i+1).padStart(2,'0')}));
+  const anos=[];for(let a=AN;a>=AN-100;a--)anos.push({value:a,label:String(a)});
+  const nasc=()=>sd.value&&sm.value&&sa.value?`${sa.value}-${String(sm.value).padStart(2,'0')}-${String(sd.value).padStart(2,'0')}`:null;
+  const updAge=()=>{if(sm.value){sd.setItems(dias(new Date(sa.value||2000,sm.value,0).getDate()))}const n=nasc();if(!n){$('#ageTag').textContent='';return}const a=Conta.idade(n);$('#ageTag').innerHTML=`<span class="age ${a>=30?'ok':'no'}">${a} anos${a>=30?'':' · precisa ter 30 ou mais'}</span>`};
+  const sd=PSelect($('#dd'),{items:dias(31),value:d0,placeholder:'Dia',label:'Dia',onChange:updAge});
+  const sm=PSelect($('#mm'),{items:MESES.map((m,i)=>({value:i+1,label:m})),value:m0,placeholder:'Mês',label:'Mês',onChange:updAge});
+  const sa=PSelect($('#aa'),{items:anos,value:y0,placeholder:'Ano',search:true,label:'Ano',onChange:updAge});
+  updAge();
+  app.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=$('#'+b.dataset.t);i.type=i.type==='password'?'text':'password'});
+  $('#f').onsubmit=async e=>{
     e.preventDefault();$('#err').textContent='';
     const pn=$('#pn').value.trim(),sn=$('#sn').value.trim();
     if(!pn||!sn){$('#err').textContent='Digite nome e sobrenome.';(!pn?$('#pn'):$('#sn')).classList.add('bad');return}
     if(!cs.value){$('#err').textContent='Escolha a cidade.';cs.el.classList.add('bad');return}
     if(wa.value.replace(/\D/g,'').length<10){$('#err').textContent='Digite o WhatsApp com DDD.';wa.classList.add('bad');return}
+    const n=nasc();if(!n){$('#err').textContent='Escolha dia, mês e ano de nascimento.';return}
+    if(new Date(n)>new Date()){$('#err').textContent='Essa data ainda não chegou.';return}
+    if(Conta.idade(n)<30){$('#err').textContent='O Pobres Over 30 só aceita pessoas a partir de 30 anos.';return}
+    const em=$('#em').value.trim().toLowerCase(),np=$('#np').value,np2=$('#np2').value;
+    if(np&&np!==$('#np2').value){$('#err').textContent='As novas senhas não são iguais.';$('#np2').classList.add('bad');return}
+    const mudouAcesso=(em&&em!==me.email)||np;
     try{
-      Conta.atualizar({primeiro:pn,sobrenome:sn,cidade:cs.value,uf:uf.value,area:ar.value,frase:$('#frase').value.trim(),historia:$('#bio').value.trim(),bio:'',instagram:$('#ig').value.trim(),whatsapp:wa.value,foto});
-      Conta.header($('#acct'));view();toast('Página atualizada');window.scrollTo({top:0,behavior:'smooth'});
+      if(mudouAcesso)await Conta.seguranca({email:em,senhaAtual:$('#cp').value,novaSenha:np});
+      Conta.atualizar({nascimento:n,primeiro:pn,sobrenome:sn,cidade:cs.value,uf:uf.value,area:ar.value,frase:$('#frase').value.trim(),historia:$('#bio').value.trim(),bio:'',instagram:$('#ig').value.trim(),whatsapp:wa.value,foto});
+      Conta.header($('#acct'));view();toast(mudouAcesso?'Perfil e acesso atualizados':'Página atualizada');window.scrollTo({top:0,behavior:'smooth'});
     }catch(x){$('#err').textContent=x.message}
   };
   $('#pn').focus();

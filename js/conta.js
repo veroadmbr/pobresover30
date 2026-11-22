@@ -173,6 +173,26 @@
       return u;
     },
     sair() { ls.del(S) },
+    /* troca de e-mail e/ou senha: sempre pede a senha atual */
+    async seguranca({ email, senhaAtual, novaSenha }) {
+      const me = Conta.atual(); if (!me) throw new Error('Sessão expirada. Entre de novo.');
+      const novoEmail = (email || '').trim().toLowerCase(), mudaEmail = novoEmail && novoEmail !== me.email;
+      if (!mudaEmail && !novaSenha) return me;
+      if (!senhaAtual) throw new Error('Digite sua senha atual para alterar e-mail ou senha.');
+      if (await hash(senhaAtual) !== me.senha) throw new Error('Senha atual incorreta.');
+      const us = Conta.users(), i = us.findIndex(u => u.id === me.id);
+      if (mudaEmail) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(novoEmail)) throw new Error('Digite um e-mail válido.');
+        if (us.some(u => u.email === novoEmail && u.id !== me.id)) throw new Error('Esse e-mail já está em uso por outra conta.');
+        us[i].email = novoEmail;
+      }
+      if (novaSenha) {
+        if (novaSenha.length < 8) throw new Error('A nova senha precisa ter pelo menos 8 caracteres.');
+        us[i].senha = await hash(novaSenha);
+      }
+      if (!ls.set(K, us)) throw new Error('Não deu pra salvar. Tente de novo.');
+      return us[i];
+    },
     remover(id) { const us = Conta.users().filter(u => u.id !== id); ls.set(K, us); if (ls.get(S, null) === id) ls.del(S) },
     /* ranking do dia: quem mais caiu na cotação fica no topo (o mais pobre do dia é o nº 1) */
     ranking() {
@@ -182,7 +202,8 @@
     atualizar(patch) {
       const me = Conta.atual(); if (!me) throw new Error('Sessão expirada. Entre de novo.');
       const us = Conta.users(), i = us.findIndex(u => u.id === me.id);
-      us[i] = { ...us[i], ...patch, id: me.id, email: me.email, senha: me.senha, nascimento: me.nascimento };
+      if (patch.nascimento && idade(patch.nascimento) < 30) throw new Error('O Pobres Over 30 só aceita pessoas a partir de 30 anos.');
+      us[i] = { ...us[i], ...patch, id: me.id, email: me.email, senha: me.senha, nascimento: patch.nascimento || me.nascimento };
       if (patch.primeiro || patch.sobrenome) us[i].nome = `${us[i].primeiro} ${us[i].sobrenome}`;
       if (!ls.set(K, us)) throw new Error('Não deu pra salvar. Tente uma foto menor.');
       return us[i];
