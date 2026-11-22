@@ -244,7 +244,7 @@ function visitas(){
   const PAGN={index:'Top 30',inscritos:'Últimos inscritos',inscricao:'Inscrição',entrar:'Entrar',perfil:'Perfil',pessoa:'Página da pessoa'};
   return `<div class="tw">${v.length?`<table class="stack"><thead><tr><th>Quando</th><th>Página</th><th>Origem</th><th>Dispositivo</th><th>Visitante</th></tr></thead><tbody>${v.map(x=>`<tr><td class="num">${new Date(x.t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(PAGN[x.pagina]||x.pagina)}</td><td>${esc(ORIG[x.origem]||x.origem)}</td><td>${esc(DISP[x.disp]||x.disp)}</td><td><span class="chip">${esc(x.vid.slice(-6))}</span></td></tr>`).join('')}</tbody></table>`:'<div class="none">Nenhuma visita no período.</div>'}</div><div class="foot"><span>Mostrando as ${fmt(v.length)} visitas mais recentes do período</span></div>`;
 }
-const EVN={inscricao_passo:'Passo da inscrição',inscricao_concluida:'Inscrição concluída',inscricao_recusada_idade:'Recusado por idade',login:'Login',compartilhar_aberto:'Abriu compartilhar',download:'Baixou peça',link_copiado:'Copiou link',perfil_visto:'Viu página de pessoa'};
+const EVN={inscricao_passo:'Passo da inscrição',inscricao_concluida:'Inscrição concluída',inscricao_recusada_idade:'Recusado por idade',login:'Login',compartilhar_aberto:'Abriu compartilhar',download:'Baixou peça',link_copiado:'Copiou link',perfil_visto:'Viu página de pessoa',compartilhou_peca:'Compartilhou peça',compartilhou_link:'Compartilhou link'};
 function eventos(){
   const e=S.ev.slice().reverse().slice(0,300);
   const det=x=>x.passo?`Passo ${x.passo}`:x.peca?({story:'Story',post:'Post',reel:'Reel'}[x.peca]):x.idade?`${x.idade} anos`:x.area?esc(x.area):x.pessoa?`<a href="pessoa.html#${esc(x.pessoa)}">ver pessoa</a>`:'';

@@ -194,6 +194,8 @@ const s5={html:()=>head('Agora, sua conta.','É com o e-mail e a senha que você
 
 function done(u){
   window.Metricas&&Metricas.track('inscricao_concluida',{uf:u.uf,area:u.area});
+  try{sessionStorage.setItem('pobres-abrir-kit',u.id)}catch(e){}
+  location.href='pessoa.html#'+u.id;return;
   const c=Conta.cotacao(u.id);
   $('#bar').style.width='100%';Conta.header($('#acct'));
   app.innerHTML=`<div class="pane done"><div class="step-n">Inscrição confirmada</div><h1 class="q">Bem-vindo à lista, ${esc(u.primeiro)}.</h1>
