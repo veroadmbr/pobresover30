@@ -78,7 +78,7 @@ function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clea
 const posicao=()=>{const us=Conta.users().slice().sort((a,b)=>a.criado-b.criado);return us.findIndex(u=>u.id===me.id)+1};
 const data=iso=>{const[y,m,d]=iso.split('-');return `${d}/${m}/${y}`};
 
-function bar(edit){return `<div class="bar"><div class="crumb"><a href="top30.html">Pobres Over 30</a> / ${edit?'Editando minha página':'Minha página'}</div><div class="tools">${edit?'':`<a class="btn ghost" href="pessoa.html#${me.id}">Ver página pública</a><button class="btn" id="ed">Editar minha página</button><button class="btn ghost" id="out">Sair</button>`}</div></div>`}
+function bar(edit){return `<div class="bar"><div class="crumb"><a href="index.html">Pobres Over 30</a> / ${edit?'Editando minha página':'Minha página'}</div><div class="tools">${edit?'':`<a class="btn ghost" href="pessoa.html#${me.id}">Ver página pública</a><button class="btn" id="ed">Editar minha página</button><button class="btn ghost" id="out">Sair</button>`}</div></div>`}
 
 function view(){
   me=Conta.atual();const cot=Conta.cotacao(me.id),hist=me.historia||me.bio||'';

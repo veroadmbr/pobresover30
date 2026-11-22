@@ -64,7 +64,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 </head>
 <body>
 <header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
-<div class="band"><a href="top30.html"><img src="img/pobres-over30.png" alt="Pobres Over 30, 2026"></a></div>
+<div class="band"><a href="index.html"><img src="img/pobres-over30.png" alt="Pobres Over 30, 2026"></a></div>
 <main class="w" id="app"></main>
 
 <div class="mod" id="mod" role="dialog" aria-modal="true" aria-labelledby="mt">
@@ -95,11 +95,11 @@ let p=null,assets=null,loop=0;
 
 function render(){
   const id=location.hash.slice(1);p=id?Conta.pessoa(id):null;
-  if(!p){$('#app').innerHTML=`<div class="notfound"><h1>Pessoa não encontrada.</h1><p>Esse link pode estar errado ou a pessoa ainda não está na lista.</p><a class="btn" href="index.html">Ver últimos inscritos</a></div>`;return}
+  if(!p){$('#app').innerHTML=`<div class="notfound"><h1>Pessoa não encontrada.</h1><p>Esse link pode estar errado ou a pessoa ainda não está na lista.</p><a class="btn" href="index.html">Ver os 30 tops</a></div>`;return}
   document.title=`${p.nome} · Pobres Over 30`;
   const me=Conta.atual(),mine=me&&me.id===p.id,c=Conta.cotacao(p.id),ig=(p.instagram||'').replace(/^@/,'');
   const hist=p.historia||p.bio||'';
-  $('#app').innerHTML=`<div class="bar"><div class="crumb"><a href="${p.rank?'top30.html':'index.html'}">${p.rank?'Pobres Over 30':'Últimos inscritos'}</a> / ${esc(p.nome)}</div><div class="tools">${mine?'<a class="btn ghost" href="perfil.html">Editar minha página</a>':''}<button class="btn" id="share">Compartilhar</button></div></div>
+  $('#app').innerHTML=`<div class="bar"><div class="crumb"><a href="${p.rank?'index.html':'inscritos.html'}">${p.rank?'Pobres Over 30':'Últimos inscritos'}</a> / ${esc(p.nome)}</div><div class="tools">${mine?'<a class="btn ghost" href="perfil.html">Editar minha página</a>':''}<button class="btn" id="share">Compartilhar</button></div></div>
   <section class="sheet">
     <div class="pic"><div class="ph">${p.foto?`<img src="${p.foto}" alt="Foto de ${esc(p.nome)}">`:PERSON}<span class="mk ${c.dir}">${ARR[c.dir]}${c.dir==='up'?'+':'−'}${c.pct}%</span>${p.rank?`<span class="rk">${p.rank}</span>`:''}</div></div>
     <div class="info">

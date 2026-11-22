@@ -129,7 +129,7 @@ function reject(){
   const f=Conta.faltaPara30(iso());
   $('#bar').style.width='0%';
   const parts=[f.anos?`${f.anos} ${f.anos>1?'anos':'ano'}`:'',f.dias?`${f.dias} ${f.dias>1?'dias':'dia'}`:''].filter(Boolean).join(' e ');
-  app.innerHTML=`<div class="pane reject"><div class="big">${Conta.idade(iso())}</div><h1 class="q">Ainda não, jovem.</h1><p>O Pobres Over 30 só aceita pessoas a partir de 30 anos. Faltam ${parts||'poucos dias'} pra você entrar. Aproveite enquanto ainda dá pra culpar a idade.</p><div class="acts"><button class="btn ghost" id="fix">Corrigir a data</button><a class="btn" href="top30.html">Ver os 30 tops</a></div></div>`;
+  app.innerHTML=`<div class="pane reject"><div class="big">${Conta.idade(iso())}</div><h1 class="q">Ainda não, jovem.</h1><p>O Pobres Over 30 só aceita pessoas a partir de 30 anos. Faltam ${parts||'poucos dias'} pra você entrar. Aproveite enquanto ainda dá pra culpar a idade.</p><div class="acts"><button class="btn ghost" id="fix">Corrigir a data</button><a class="btn" href="index.html">Ver os 30 tops</a></div></div>`;
   $('#fix').onclick=()=>render();
 }
 
