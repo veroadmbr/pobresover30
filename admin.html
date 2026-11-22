@@ -87,6 +87,14 @@ td a{color:var(--ink);font-weight:600}
 .box h2{font-size:24px}.box p{color:var(--mut);margin:8px 0 20px;font-size:14px}
 .box .acts{display:flex;gap:10px;justify-content:flex-end}
 .box .btn{height:44px;font-size:14px}
+.set{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.set p{color:var(--mut);font-size:14px;margin:8px 0 0;max-width:60ch}
+.switch{flex:none;width:58px;height:34px;border-radius:999px;border:0;background:var(--line);position:relative;cursor:pointer;transition:background .2s}
+.switch i{position:absolute;top:4px;left:4px;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch.on{background:var(--up)}.switch.on i{transform:translateX(24px)}
+.pill-ex{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px 0 8px;border-radius:999px;border:1px solid var(--line);background:var(--card);font:600 13px "Work Sans";color:var(--ink);cursor:pointer;white-space:nowrap}
+.pill-ex .sw{width:36px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
+.pill-ex .sw i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
+.pill-ex.on .sw{background:var(--up)}.pill-ex.on .sw i{transform:translateX(14px)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:80}.toast.on{opacity:1}
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.s8,.s4{grid-column:span 12}.s6{grid-column:span 6}}
 .hb .tagadm{white-space:nowrap}
@@ -245,6 +253,11 @@ function eventos(){
   <div class="foot"><span>Mostrando os ${fmt(e.length)} eventos mais recentes</span><button class="mini del" id="zerar">Zerar métricas</button></div></div></div>`;
 }
 
+function ajustes(){
+  const on=Conta.exemplosAtivos();
+  return `<div class="grid"><div class="card s8"><div class="set"><div><h3>Perfis de exemplo</h3><p>${fmt(Conta.totalExemplos)} perfis fictícios com nome, cidade, área e história. Quando ligados, entram no top 30, no mural de últimos inscritos e têm página própria. Não contam nas métricas nem na lista de inscritos do painel.</p></div><button class="switch${on?' on':''}" id="ex" role="switch" aria-checked="${on}" aria-label="Perfis de exemplo"><i></i></button></div>
+  <div class="foot"><span>Status: <b style="color:var(--ink)">${on?'Ligados':'Desligados'}</b></span><span>Vale para este navegador até o site ser ligado ao servidor.</span></div></div></div>`;
+}
 function confirmar(t,p,ok){$('#mT').textContent=t;$('#mP').textContent=p;$('#mod').classList.add('on');$('#mY').onclick=()=>{$('#mod').classList.remove('on');ok()};$('#mN').onclick=()=>$('#mod').classList.remove('on')}
 $('#mod').onclick=e=>{if(e.target.id==='mod')$('#mod').classList.remove('on')};
 
@@ -252,10 +265,10 @@ function painel(){
   if(!logged())return gate();
   $('#out').hidden=false;
   calc();
-  const tabs=[['geral','Visão geral'],['inscritos','Inscritos',S.us.length],['visitas','Visitas',S.vis.length],['eventos','Eventos',S.ev.length]];
-  app.innerHTML=`<div class="w"><div class="top"><div><h1>Painel</h1><p>Atualizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p></div><div class="ctl"><div class="sm" id="per"></div><button class="btn ghost" id="ref">Atualizar</button></div></div>
+  const tabs=[['geral','Visão geral'],['inscritos','Inscritos',S.us.length],['visitas','Visitas',S.vis.length],['eventos','Eventos',S.ev.length],['ajustes','Ajustes']];
+  app.innerHTML=`<div class="w"><div class="top"><div><h1>Painel</h1><p>Atualizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p></div><div class="ctl"><button class="pill-ex${Conta.exemplosAtivos()?' on':''}" id="exq" role="switch" aria-checked="${Conta.exemplosAtivos()}"><span class="sw"><i></i></span>Perfis de exemplo</button><div class="sm" id="per"></div><button class="btn ghost" id="ref">Atualizar</button></div></div>
   <nav class="tabs" role="tablist">${tabs.map(([k,l,n])=>`<button role="tab" data-t="${k}" class="${tab===k?'on':''}" aria-selected="${tab===k}">${l}${n!=null?`<span class="n">${fmt(n)}</span>`:''}</button>`).join('')}</nav>
-  <section class="pane">${{geral,inscritos,visitas,eventos}[tab]()}</section></div>`;
+  <section class="pane">${{geral,inscritos,visitas,eventos,ajustes}[tab]()}</section></div>`;
   app.querySelectorAll('table.stack').forEach(tb=>{const h=[...tb.querySelectorAll('thead th')].map(th=>th.textContent);tb.querySelectorAll('tbody tr').forEach(tr=>[...tr.children].forEach((td,i)=>td.dataset.l=h[i]||''))});
   PSelect($('#per'),{items:PER,value:per,label:'Período',onChange:v=>{per=v;painel()}});
   $('#ref').onclick=()=>{painel();toast('Dados atualizados')};
@@ -269,6 +282,8 @@ function painel(){
       const ok=await Conta.baixar(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),`pobres-inscritos-${new Date().toISOString().slice(0,10)}.csv`);if(ok)toast('CSV exportado')};
     app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,()=>{Conta.remover(u.id);painel();toast('Inscrito removido')})});
   }
+  const toggleEx=()=>{const v=!Conta.exemplosAtivos();Conta.setExemplos(v);painel();toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')};
+  $('#exq').onclick=toggleEx;$('#ex')?.addEventListener('click',toggleEx);
   if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',()=>{Metricas.limpar();painel();toast('Métricas zeradas')});
 }
 $('#out').onclick=()=>{try{sessionStorage.removeItem('pobres-admin')}catch(e){}gate()};
