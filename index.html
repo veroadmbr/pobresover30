@@ -135,7 +135,8 @@ function render(){
   $('podium').style.display=podium?'grid':'none';
   $('podium').innerHTML=podium?vis.slice(0,3).map(card).join(''):'';
   const rest=podium?vis.slice(3):vis;
-  $('grid').innerHTML=rest.length?rest.map(card).join(''):(people.length?'<p class="empty">Ninguém encontrado.</p>':'');
+  $('grid').innerHTML=rest.length?rest.map(card).join(''):(people.length&&!vis.length?'<p class="empty">Ninguém encontrado.</p>':'');
+  $('grid').style.display=rest.length||(people.length&&!vis.length)?'':'none';
   $('vazio').hidden=people.length>0;
 }
 const srt=PSelect($('sort'),{items:[{value:'rank',label:'Ranking'},{value:'up',label:'Em alta primeiro'},{value:'dn',label:'Em baixa primeiro'}],value:'rank',label:'Ordenar',onChange:render});
