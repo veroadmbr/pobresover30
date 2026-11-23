@@ -19,6 +19,7 @@ export default async function handler(req, res) {
         if (!igual(String(d.senha || ''), S)) { await q('insert into admin_tentativas (ip) values ($1)', [ip]); throw falha('Senha incorreta.', 401) }
         await q('delete from admin_tentativas where ip = $1 or t < now() - interval \'1 day\'', [ip]);
         setCookie(req, res, 'pobres_adm', assinar({ adm: 1 }, 1), 1);
+        setCookie(req, res, 'pobres_nc', assinar({ nc: 1 }, 730), 730); /* este navegador não conta como visita */
         return json(res, 200, { ok: true });
       }
       if (d.acao === 'sair') { setCookie(req, res, 'pobres_adm', ''); return json(res, 200, { ok: true }) }
@@ -41,6 +42,7 @@ export default async function handler(req, res) {
         lista = d.valor ? [...new Set([...lista, vid])].slice(-50) : lista.filter(x => x !== vid);
         await q(`insert into config (chave, valor) values ('ignorados', $1) on conflict (chave) do update set valor = excluded.valor`, [JSON.stringify(lista)]);
         if (d.valor) await q('delete from metricas where vid = $1', [vid]);
+        setCookie(req, res, 'pobres_nc', d.valor ? assinar({ nc: 1 }, 730) : '', 730);
         return json(res, 200, { ignorados: lista.length });
       }
       if (d.acao === 'zerar') { await q('delete from metricas'); return json(res, 200, { ok: true }) }

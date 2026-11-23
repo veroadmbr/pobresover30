@@ -1,5 +1,5 @@
 /* Pobres — registro de visitas e eventos para o painel */
-import { q, json, corpo, erro, txt } from './_lib/util.js';
+import { q, json, corpo, erro, txt, cookies, verificar } from './_lib/util.js';
 
 const NOMES = ['pagina', 'inscricao_passo', 'inscricao_concluida', 'inscricao_recusada_idade', 'login', 'compartilhar_aberto', 'download', 'link_copiado', 'perfil_visto', 'compartilhou_peca', 'compartilhou_link'];
 
@@ -9,6 +9,8 @@ export default async function handler(req, res) {
     const d = corpo(req);
     const tipo = d.tipo === 'evento' ? 'evento' : 'visita', nome = txt(d.nome, 40);
     if (!NOMES.includes(nome)) return json(res, 400, { erro: 'Evento inválido.' });
+    const nc = verificar(cookies(req).pobres_nc);
+    if (nc && nc.nc) return json(res, 200, { ok: true, ignorado: true });
     const vid = txt(d.vid, 40);
     const ig = await q(`select valor from config where chave = 'ignorados'`);
     if (ig[0] && Array.isArray(ig[0].valor) && ig[0].valor.includes(vid)) return json(res, 200, { ok: true, ignorado: true });
