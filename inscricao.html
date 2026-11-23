@@ -76,7 +76,7 @@ main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:clamp(28px,6vw,64px
 <script src="js/conta.js"></script>
 <script src="js/analytics.js"></script>
 <script>
-{
+Conta.pronto.then(()=>{
 const $=s=>document.querySelector(s), esc=Conta.esc;
 const PERSON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
 const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
@@ -207,7 +207,7 @@ function done(u){
 }
 if(Conta.atual()){app.innerHTML=`<div class="pane done"><h1 class="q">Você já está na lista.</h1><p class="sub" style="margin-inline:auto">Sua conta já está ativa neste navegador.</p><div class="acts"><a class="btn" href="perfil.html">Ver meu perfil</a></div></div>`;$('#bar').style.width='100%'}
 else render();
-}
+});
 </script>
 </body>
 </html>

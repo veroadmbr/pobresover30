@@ -76,7 +76,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 <script src="js/conta.js"></script>
 <script src="js/analytics.js"></script>
 <script>
-{
+Conta.pronto.then(()=>{
 const $=s=>document.querySelector(s),esc=Conta.esc;
 const PERSON='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
 const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
@@ -105,7 +105,7 @@ function view(){
       <div class="facts"><div>Inscrito nº<b>${posicao().toLocaleString("pt-BR")}</b></div><div>Cotação de hoje<b style="color:var(--${cot.dir})">${cot.dir==='up'?'Em alta':'Em baixa'}</b></div><div>Na lista desde<b>${new Date(me.criado).toLocaleDateString('pt-BR',{month:'short',year:'numeric'}).replace('.','')}</b></div></div>
     </div></section>`;
   $('#ed').onclick=edit;
-  $('#out').onclick=()=>{Conta.sair();location.href='index.html'};
+  $('#out').onclick=async()=>{await Conta.sair();location.href='index.html'};
 }
 
 function edit(){
@@ -169,14 +169,14 @@ function edit(){
     const mudouAcesso=(em&&em!==me.email)||np;
     try{
       if(mudouAcesso)await Conta.seguranca({email:em,senhaAtual:$('#cp').value,novaSenha:np});
-      Conta.atualizar({nascimento:n,primeiro:pn,sobrenome:sn,cidade:cs.value,uf:uf.value,area:ar.value,frase:$('#frase').value.trim(),historia:$('#bio').value.trim(),bio:'',instagram:$('#ig').value.trim(),whatsapp:wa.value,foto});
+      await Conta.atualizar({nascimento:n,primeiro:pn,sobrenome:sn,cidade:cs.value,uf:uf.value,area:ar.value,frase:$('#frase').value.trim(),historia:$('#bio').value.trim(),bio:'',instagram:$('#ig').value.trim(),whatsapp:wa.value,foto});
       Conta.header($('#acct'));view();toast(mudouAcesso?'Perfil e acesso atualizados':'Página atualizada');window.scrollTo({top:0,behavior:'smooth'});
     }catch(x){$('#err').textContent=x.message}
   };
   $('#pn').focus();
 }
 if(!me)location.replace('entrar.html');else view();
-}
+});
 </script>
 </body>
 </html>

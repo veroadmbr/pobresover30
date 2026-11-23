@@ -116,14 +116,9 @@ td a{color:var(--ink);font-weight:600}
 <script src="js/analytics.js"></script>
 <script>
 {
-/* Acesso do admin (troque a senha: gere o hash de "pobres-admin:<email>:<senha>" em SHA-256) */
-const ADMIN_EMAIL='admin@pobres.com.br';
-const ADMIN_HASH='09e780b07ce988d6ded56ee167d5fb120d3862d77fe3188ea895efc27b85d10b';
 const $=s=>document.querySelector(s),esc=Conta.esc,app=$('#app');
 const DIA=864e5,fmt=n=>n.toLocaleString('pt-BR');
 const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)};
-async function sha(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){return ''}}
-const logged=()=>{try{return sessionStorage.getItem('pobres-admin')===ADMIN_HASH}catch(e){return false}};
 
 function gate(){
   $('#out').hidden=true;
@@ -133,8 +128,7 @@ function gate(){
   <button class="btn">Entrar no painel</button><div class="err" id="ge2"></div></form>`;
   $('#eye').onclick=()=>{const i=$('#gp');i.type=i.type==='password'?'text':'password'};
   $('#g').onsubmit=async e=>{e.preventDefault();const em=$('#ge').value.trim().toLowerCase(),pw=$('#gp').value;
-    const h=await sha(`pobres-admin:${em}:${pw}`);
-    if(em===ADMIN_EMAIL&&h===ADMIN_HASH){try{sessionStorage.setItem('pobres-admin',h)}catch(x){}painel()}else $('#ge2').textContent='E-mail ou senha incorretos.'};
+    try{await Conta.admin.entrar(em,pw);painel(true)}catch(x){$('#ge2').textContent=x.message}};
 }
 
 /* ---------- dados ---------- */
@@ -142,7 +136,7 @@ let per='30',tab='geral',q='',S={};
 const PER=[{value:'1',label:'Hoje'},{value:'7',label:'Últimos 7 dias'},{value:'30',label:'Últimos 30 dias'},{value:'90',label:'Últimos 90 dias'},{value:'all',label:'Todo o período'}];
 const ini=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()};
 function janela(){
-  const hoje=ini(Date.now()),all=Metricas.todos(),us=Conta.users();
+  const hoje=ini(Date.now()),all=D.metricas||[],us=D.usuarios||[];
   let n=per==='all'?Math.max(7,Math.ceil((hoje-ini(Math.min(...all.map(x=>x.t),...us.map(u=>u.criado),Date.now())))/DIA)+1):+per;
   const de=hoje-(n-1)*DIA,ate=hoje+DIA,pde=de-n*DIA;
   return {n,de,ate,pde,all,us};
@@ -258,13 +252,14 @@ function eventos(){
 function ajustes(){
   const on=Conta.exemplosAtivos();
   return `<div class="grid"><div class="card s8"><div class="set"><div><h3>Perfis de exemplo</h3><p>${fmt(Conta.totalExemplos)} perfis fictícios com nome, cidade, área e história. Quando ligados, entram no top 30, no mural de últimos inscritos e têm página própria. Não contam nas métricas nem na lista de inscritos do painel.</p></div><button class="switch${on?' on':''}" id="ex" role="switch" aria-checked="${on}" aria-label="Perfis de exemplo"><i></i></button></div>
-  <div class="foot"><span>Status: <b style="color:var(--ink)">${on?'Ligados':'Desligados'}</b></span><span>Vale para este navegador até o site ser ligado ao servidor.</span></div></div></div>`;
+  <div class="foot"><span>Status: <b style="color:var(--ink)">${on?'Ligados':'Desligados'}</b></span><span>${Conta.modo==='api'?'Vale para todos os visitantes.':'Modo demonstração: vale só para este navegador.'}</span></div></div></div>`;
 }
 function confirmar(t,p,ok){$('#mT').textContent=t;$('#mP').textContent=p;$('#mod').classList.add('on');$('#mY').onclick=()=>{$('#mod').classList.remove('on');ok()};$('#mN').onclick=()=>$('#mod').classList.remove('on')}
 $('#mod').onclick=e=>{if(e.target.id==='mod')$('#mod').classList.remove('on')};
 
-function painel(){
-  if(!logged())return gate();
+let D=null;
+async function painel(refetch){
+  if(refetch||!D){try{D=await Conta.admin.dados()}catch(x){if(x.status===401)return gate();app.innerHTML=`<div class="gate"><h1>Não deu pra carregar</h1><p>${esc(x.message)}</p><button class="btn" onclick="location.reload()">Tentar de novo</button></div>`;return}}
   $('#out').hidden=false;
   calc();
   const tabs=[['geral','Visão geral'],['inscritos','Inscritos',S.us.length],['visitas','Visitas',S.vis.length],['eventos','Eventos',S.ev.length],['ajustes','Ajustes']];
@@ -273,7 +268,7 @@ function painel(){
   <section class="pane">${{geral,inscritos,visitas,eventos,ajustes}[tab]()}</section></div>`;
   app.querySelectorAll('table.stack').forEach(tb=>{const h=[...tb.querySelectorAll('thead th')].map(th=>th.textContent);tb.querySelectorAll('tbody tr').forEach(tr=>[...tr.children].forEach((td,i)=>td.dataset.l=h[i]||''))});
   PSelect($('#per'),{items:PER,value:per,label:'Período',onChange:v=>{per=v;painel()}});
-  $('#ref').onclick=()=>{painel();toast('Dados atualizados')};
+  $('#ref').onclick=async()=>{await painel(true);toast('Dados atualizados')};
   app.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{tab=b.dataset.t;painel()});
   if(tab==='geral'){linha($('#fV'),'v','visitas');barras($('#fI'))}
   if(tab==='inscritos'){
@@ -282,14 +277,14 @@ function painel(){
       const cell=v=>`"${String(v??'').replace(/"/g,'""')}"`;
       const lines=[cols.join(';'),...S.us.map(u=>[u.primeiro||u.nome,u.sobrenome||'',u.nascimento,Conta.idade(u.nascimento),u.cidade,u.uf,u.area,u.email,u.whatsapp,u.instagram,u.historia||u.bio||'',new Date(u.criado).toLocaleString('pt-BR')].map(cell).join(';'))];
       const ok=await Conta.baixar(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),`pobres-inscritos-${new Date().toISOString().slice(0,10)}.csv`);if(ok)toast('CSV exportado')};
-    app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,()=>{Conta.remover(u.id);painel();toast('Inscrito removido')})});
+    app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,async()=>{try{await Conta.admin.remover(u.id);await painel(true);toast('Inscrito removido')}catch(x){toast(x.message)}})});
   }
-  const toggleEx=()=>{const v=!Conta.exemplosAtivos();Conta.setExemplos(v);painel();toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')};
+  const toggleEx=async()=>{const v=!Conta.exemplosAtivos();try{await Conta.admin.exemplos(v);await painel(true);toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')}catch(x){toast(x.message)}};
   $('#exq').onclick=toggleEx;$('#ex')?.addEventListener('click',toggleEx);
-  if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',()=>{Metricas.limpar();painel();toast('Métricas zeradas')});
+  if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',async()=>{try{await Conta.admin.zerar();await painel(true);toast('Métricas zeradas')}catch(x){toast(x.message)}});
 }
-$('#out').onclick=()=>{try{sessionStorage.removeItem('pobres-admin')}catch(e){}gate()};
-painel();
+$('#out').onclick=async()=>{await Conta.admin.sair();D=null;gate()};
+Conta.pronto.then(()=>painel(true));
 }
 </script>
 </body>

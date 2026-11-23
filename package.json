@@ -1,0 +1,10 @@
+{
+  "name": "pobres",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.1",
+    "@vercel/blob": "^2.9.0"
+  }
+}

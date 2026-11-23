@@ -1,6 +1,5 @@
-/* Pobres — métricas de visitas e eventos (demo em localStorage).
-   Cada página registra uma visita ao abrir; ações importantes viram eventos.
-   Para medir todos os visitantes de verdade, troque salvar()/todos() por chamadas ao seu backend. */
+/* Pobres — métricas de visitas e eventos.
+   Na Vercel, cada registro vai para /api/track (banco Neon). Sem servidor, fica neste navegador (demonstração). */
 (() => {
   const K = 'pobres-metricas', VID = 'pobres-visitante', SID = 'pobres-sessao-nav', MAX = 8000;
   const get = () => { try { return JSON.parse(localStorage.getItem(K) || '[]') } catch (e) { return [] } };
@@ -11,7 +10,7 @@
   const pagina = () => (location.pathname.split('/').pop() || 'index.html').replace('.html', '') || 'index';
   function origem() {
     const q = new URLSearchParams(location.search), utm = q.get('utm_source');
-    if (utm) return utm.toLowerCase();
+    if (utm) return utm.toLowerCase().slice(0, 60);
     let r = ''; try { r = document.referrer ? new URL(document.referrer).hostname : '' } catch (e) {}
     if (!r || r === location.hostname) return 'direto';
     if (/instagram/.test(r)) return 'instagram';
@@ -23,16 +22,21 @@
     if (/linkedin/.test(r)) return 'linkedin';
     return r.replace(/^www\./, '');
   }
-  const disp = () => /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) ? 'celular' : /iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : 'computador';
-  function registrar(tipo, nome, dados) {
-    const arr = get();
-    arr.push({ t: Date.now(), tipo, nome, pagina: pagina(), vid: vid(), sid: sid(), origem: origem(), disp: disp(), ...(dados || {}) });
-    salvar(arr);
+  const disp = () => /iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) ? 'celular' : 'computador';
+  const ORIG = origem();
+  async function registrar(tipo, nome, dados) {
+    const reg = { tipo, nome, pagina: pagina(), vid: vid(), sid: sid(), origem: ORIG, disp: disp() };
+    if (window.Conta) await Conta.pronto;
+    if (window.Conta && Conta.modo === 'api') {
+      try { await fetch('api/track', { method: 'POST', keepalive: true, credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...reg, dados: dados || {} }) }) } catch (e) {}
+      return;
+    }
+    const arr = get(); arr.push({ t: Date.now(), ...reg, ...(dados || {}) }); salvar(arr);
   }
   window.Metricas = {
-    track: (nome, dados) => registrar('evento', nome, dados),
-    todos: get,
-    limpar: () => salvar([])
+    track: (nome, dados) => { registrar('evento', nome, dados) },
+    locais: get,
+    limparLocal: () => salvar([])
   };
   if (!/admin/.test(pagina())) registrar('visita', 'pagina', {});
 })();

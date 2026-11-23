@@ -3,7 +3,7 @@
 (() => {
   const C = { ink: '#141414', mut: '#5f5f5f', line: '#e2e2e2', bg: '#ffffff', soft: '#f1f1f1', up: '#0f8a3c', dn: '#e3120b', red: '#ff0a2a' };
   const SERIF = '"Playfair Display", Georgia, serif', SANS = '"Work Sans", Arial, sans-serif';
-  const img = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src });
+  const img = src => new Promise((ok, no) => { const i = new Image(); if (/^https?:/.test(src) && !src.startsWith(location.origin)) i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = src });
   let seal = null;
 
   async function prep(p) {

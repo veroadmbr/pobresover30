@@ -139,27 +139,58 @@
     return p;
   });
 
+  /* ---------- servidor (Vercel + Neon) ou demonstração (dados só neste navegador) ---------- */
+  const API = 'api/';
+  async function api(path, body) {
+    const r = await fetch(API + path, body ? { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { credentials: 'same-origin' });
+    let d = {}; try { d = await r.json() } catch (e) {}
+    if (!r.ok) throw Object.assign(new Error(d.erro || 'Não deu certo. Tente de novo.'), { status: r.status });
+    return d;
+  }
+  const C = { modo: 'local', pessoas: [], me: null, exemplos: false, erro: '' };
+  async function carregar() {
+    if (/^https?:$/.test(location.protocol)) {
+      try {
+        const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 8000);
+        const r = await fetch(API + 'pessoas', { signal: ctl.signal, credentials: 'same-origin' }); clearTimeout(tm);
+        if ((r.headers.get('content-type') || '').includes('json')) {
+          const d = await r.json().catch(() => ({}));
+          C.modo = 'api';
+          if (r.ok) { C.pessoas = d.pessoas || []; C.exemplos = !!d.exemplos } else { C.erro = d.erro || 'Servidor indisponível.'; console.warn('Pobres:', C.erro) }
+          try { C.me = (await api('auth')).usuario } catch (e) { C.me = null }
+          return;
+        }
+      } catch (e) {}
+    }
+    C.modo = 'local';
+  }
+  const pub = u => { const { email, whatsapp, senha, ...r } = u; return r };
+  const trocaPessoa = u => { const i = C.pessoas.findIndex(x => x.id === u.id), p = pub(u); if (i >= 0) C.pessoas[i] = p; else C.pessoas.unshift(p) };
+  const ADMIN_LOCAL = '09e780b07ce988d6ded56ee167d5fb120d3862d77fe3188ea895efc27b85d10b'; /* só para a demonstração sem servidor */
+  const sha = async s => { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('') } catch (e) { return '' } };
+
   const Conta = {
     esc, idade, faltaPara30, cotacao, historia, historias, rngOf,
     ESPECIAIS, GERAIS,
-    users: () => ls.get(K, []),
-    exemplosAtivos() { const v = ls.get('pobres-exemplos', null); return v === null ? EXEMPLOS_PADRAO : !!v },
-    setExemplos(b) { ls.set('pobres-exemplos', !!b) },
+    get modo() { return C.modo },
+    get erroServidor() { return C.erro },
+    users: () => C.modo === 'api' ? C.pessoas : ls.get(K, []),
+    exemplosAtivos() { if (C.modo === 'api') return C.exemplos; const v = ls.get('pobres-exemplos', null); return v === null ? EXEMPLOS_PADRAO : !!v },
     totalExemplos: SEEDS.length,
     seeds: () => Conta.exemplosAtivos() ? SEEDS : [],
     todos: () => [...Conta.users(), ...Conta.seeds()],
     pessoa(id) { const r = Conta.ranking().find(u => u.id === id); return r ? (r.rank <= 30 ? r : { ...r, rank: null }) : null },
-    atual() { const id = ls.get(S, null); return id ? Conta.users().find(u => u.id === id) || null : null },
+    atual() { if (C.modo === 'api') return C.me; const id = ls.get(S, null); return id ? ls.get(K, []).find(u => u.id === id) || null : null },
     async criar(d) {
-      const us = Conta.users(), email = d.email.trim().toLowerCase();
+      if (C.modo === 'api') { const r = await api('auth', { acao: 'cadastrar', ...d }); C.me = r.usuario; trocaPessoa(r.usuario); return r.usuario }
+      const us = ls.get(K, []), email = d.email.trim().toLowerCase();
       if (us.some(u => u.email === email)) throw new Error('Este e-mail já está inscrito. Entre com sua senha.');
       if (idade(d.nascimento) < 30) throw new Error('O Pobres Over 30 só aceita pessoas a partir de 30 anos.');
       const u = {
         id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
         primeiro: d.primeiro.trim(), sobrenome: d.sobrenome.trim(), nome: `${d.primeiro.trim()} ${d.sobrenome.trim()}`,
         nascimento: d.nascimento, cidade: d.cidade, uf: d.uf, area: d.area, historia: d.historia || '',
-        foto: d.foto || '', email, whatsapp: d.whatsapp, senha: await hash(d.senha),
-        frase: '', instagram: '', criado: Date.now()
+        foto: d.foto || '', email, whatsapp: d.whatsapp, senha: await hash(d.senha), frase: '', instagram: '', criado: Date.now()
       };
       us.unshift(u);
       if (!ls.set(K, us)) throw new Error('Não deu pra salvar sua inscrição. Tente uma foto menor.');
@@ -167,20 +198,22 @@
       return u;
     },
     async entrar(email, senha) {
-      const u = Conta.users().find(x => x.email === email.trim().toLowerCase());
+      if (C.modo === 'api') { const r = await api('auth', { acao: 'entrar', email, senha }); C.me = r.usuario; return r.usuario }
+      const u = ls.get(K, []).find(x => x.email === email.trim().toLowerCase());
       if (!u || u.senha !== await hash(senha)) throw new Error('E-mail ou senha incorretos.');
       ls.set(S, u.id);
       return u;
     },
-    sair() { ls.del(S) },
+    async sair() { if (C.modo === 'api') { try { await api('auth', { acao: 'sair' }) } catch (e) {} C.me = null } else ls.del(S) },
     /* troca de e-mail e/ou senha: sempre pede a senha atual */
     async seguranca({ email, senhaAtual, novaSenha }) {
+      if (C.modo === 'api') { const r = await api('auth', { acao: 'seguranca', email, senhaAtual, novaSenha }); C.me = r.usuario; return r.usuario }
       const me = Conta.atual(); if (!me) throw new Error('Sessão expirada. Entre de novo.');
       const novoEmail = (email || '').trim().toLowerCase(), mudaEmail = novoEmail && novoEmail !== me.email;
       if (!mudaEmail && !novaSenha) return me;
       if (!senhaAtual) throw new Error('Digite sua senha atual para alterar e-mail ou senha.');
       if (await hash(senhaAtual) !== me.senha) throw new Error('Senha atual incorreta.');
-      const us = Conta.users(), i = us.findIndex(u => u.id === me.id);
+      const us = ls.get(K, []), i = us.findIndex(u => u.id === me.id);
       if (mudaEmail) {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(novoEmail)) throw new Error('Digite um e-mail válido.');
         if (us.some(u => u.email === novoEmail && u.id !== me.id)) throw new Error('Esse e-mail já está em uso por outra conta.');
@@ -193,27 +226,48 @@
       if (!ls.set(K, us)) throw new Error('Não deu pra salvar. Tente de novo.');
       return us[i];
     },
-    remover(id) { const us = Conta.users().filter(u => u.id !== id); ls.set(K, us); if (ls.get(S, null) === id) ls.del(S) },
-    /* ranking do dia: quem mais caiu na cotação fica no topo (o mais pobre do dia é o nº 1) */
-    ranking() {
-      const v = c => (c.dir === 'dn' ? 1 : -1) * parseFloat(c.pct.replace(',', '.'));
-      return Conta.todos().map(u => ({ ...u, ...Conta.cotacao(u.id) })).sort((a, b) => v(b) - v(a) || a.criado - b.criado).map((u, i) => ({ ...u, rank: i + 1 }));
-    },
-    atualizar(patch) {
+    async atualizar(patch) {
+      if (C.modo === 'api') { const r = await api('auth', { acao: 'atualizar', ...patch }); C.me = r.usuario; trocaPessoa(r.usuario); return r.usuario }
       const me = Conta.atual(); if (!me) throw new Error('Sessão expirada. Entre de novo.');
-      const us = Conta.users(), i = us.findIndex(u => u.id === me.id);
+      const us = ls.get(K, []), i = us.findIndex(u => u.id === me.id);
       if (patch.nascimento && idade(patch.nascimento) < 30) throw new Error('O Pobres Over 30 só aceita pessoas a partir de 30 anos.');
       us[i] = { ...us[i], ...patch, id: me.id, email: me.email, senha: me.senha, nascimento: patch.nascimento || me.nascimento };
       if (patch.primeiro || patch.sobrenome) us[i].nome = `${us[i].primeiro} ${us[i].sobrenome}`;
       if (!ls.set(K, us)) throw new Error('Não deu pra salvar. Tente uma foto menor.');
       return us[i];
     },
+    async esqueci(email) { if (C.modo !== 'api') return { configurado: false }; return api('auth', { acao: 'esqueci', email }) },
+    async redefinir(token, senha) { if (C.modo !== 'api') throw new Error('Disponível quando o site estiver na Vercel.'); const r = await api('auth', { acao: 'redefinir', token, senha }); C.me = r.usuario; return r.usuario },
+    /* ranking do dia: quem mais caiu na cotação fica no topo (o mais pobre do dia é o nº 1) */
+    ranking() {
+      const v = c => (c.dir === 'dn' ? 1 : -1) * parseFloat(c.pct.replace(',', '.'));
+      return Conta.todos().map(u => ({ ...u, ...Conta.cotacao(u.id) })).sort((a, b) => v(b) - v(a) || a.criado - b.criado).map((u, i) => ({ ...u, rank: i + 1 }));
+    },
+    /* ---------- admin ---------- */
+    admin: {
+      async entrar(email, senha) {
+        if (C.modo === 'api') return api('admin', { acao: 'entrar', email, senha });
+        const h = await sha(`pobres-admin:${email.trim().toLowerCase()}:${senha}`);
+        if (h !== ADMIN_LOCAL) throw new Error('E-mail ou senha incorretos.');
+        try { sessionStorage.setItem('pobres-admin', h) } catch (e) {}
+      },
+      async sair() { if (C.modo === 'api') { try { await api('admin', { acao: 'sair' }) } catch (e) {} } else { try { sessionStorage.removeItem('pobres-admin') } catch (e) {} } },
+      async dados() {
+        if (C.modo === 'api') { const d = await api('admin'); C.exemplos = !!d.exemplos; return d }
+        let ok = false; try { ok = sessionStorage.getItem('pobres-admin') === ADMIN_LOCAL } catch (e) {}
+        if (!ok) throw Object.assign(new Error('Acesso restrito.'), { status: 401 });
+        return { usuarios: ls.get(K, []), metricas: window.Metricas ? Metricas.locais() : [], exemplos: Conta.exemplosAtivos() };
+      },
+      async remover(id) { if (C.modo === 'api') { await api('admin', { acao: 'remover', id }); C.pessoas = C.pessoas.filter(u => u.id !== id); return } ls.set(K, ls.get(K, []).filter(u => u.id !== id)); if (ls.get(S, null) === id) ls.del(S) },
+      async exemplos(b) { if (C.modo === 'api') { const r = await api('admin', { acao: 'exemplos', valor: !!b }); C.exemplos = r.exemplos; return } ls.set('pobres-exemplos', !!b) },
+      async zerar() { if (C.modo === 'api') return api('admin', { acao: 'zerar' }); window.Metricas && Metricas.limparLocal() }
+    },
     iniciais: n => (n || '?').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase(),
     header(el) {
       if (!el) return;
       const u = Conta.atual();
       el.innerHTML = u
-        ? `<a class="avatar" href="perfil.html" aria-label="Meu perfil" title="Meu perfil">${u.foto ? `<img src="${u.foto}" alt="">` : esc(Conta.iniciais(u.nome))}</a>`
+        ? `<a class="avatar" href="perfil.html" aria-label="Meu perfil" title="Meu perfil">${u.foto ? `<img src="${esc(u.foto)}" alt="">` : esc(Conta.iniciais(u.nome))}</a>`
         : `<a class="entrar" href="entrar.html">Entrar</a><a class="cta" href="inscricao.html">Inscreva-se</a>`;
     },
     async foto(file, size = 480) {
@@ -311,5 +365,7 @@
 
   window.Conta = Conta;
   window.PSelect = PSelect;
-  document.addEventListener('DOMContentLoaded', () => Conta.header(document.getElementById('acct')));
+  Conta.api = api;
+  Conta.pronto = carregar();
+  Conta.pronto.then(() => { const h = () => Conta.header(document.getElementById('acct')); document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', h) : h() });
 })();

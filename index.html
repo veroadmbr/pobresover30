@@ -121,7 +121,7 @@ footer b{font:700 26px "Playfair Display",Georgia,serif;color:#fff}
 <script src="js/conta.js"></script>
 <script src="js/analytics.js"></script>
 <script>
-{
+Conta.pronto.then(()=>{
 const $=id=>document.getElementById(id);
 const PL='<svg class="pl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="12" cy="9" r="4"/><path d="M4 21c1.5-4.2 4.6-6.3 8-6.3s6.5 2.1 8 6.3"/></svg>';
 const ARR={up:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 17 6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>',dn:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 6 6 4-4 8 8"/><path d="M15 17h6v-6"/></svg>'};
@@ -142,7 +142,7 @@ function render(){
 const srt=PSelect($('sort'),{items:[{value:'rank',label:'Ranking'},{value:'up',label:'Em alta primeiro'},{value:'dn',label:'Em baixa primeiro'}],value:'rank',label:'Ordenar',onChange:render});
 render();
 $('find').oninput=render;
-}
+});
 </script>
 </body>
 </html>
