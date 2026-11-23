@@ -68,14 +68,15 @@ h1,h2,h3{font-family:"Playfair Display",Georgia,serif;font-weight:600;margin:0;l
 .tbar{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .tbar .inp{height:42px;max-width:340px;font-size:15px}
 .tbar .btn{height:42px;font-size:13px;padding:0 18px}
-.tw{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
 th{text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--mut);padding:12px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
 td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
 tr:last-child td{border-bottom:0}
 td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 td a{color:var(--ink);font-weight:600}
-.act{display:flex;gap:6px;justify-content:flex-end}
+.act{display:flex;flex-direction:column;gap:6px;align-items:stretch;min-width:104px}.act .mini{justify-content:center}
+td.ct{overflow-wrap:anywhere;min-width:170px}td .chip{white-space:normal;border-radius:8px}
 .mini{height:32px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font:600 12px "Work Sans";cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;text-decoration:none;white-space:nowrap}
 .mini:hover{border-color:var(--ink)}.mini.del:hover{border-color:var(--dn);color:var(--dn)}
 .who{display:flex;gap:10px;align-items:center}
@@ -104,7 +105,7 @@ tr.blq td{color:var(--mut)}tr.blq td a{color:var(--mut)}
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.s8,.s4{grid-column:span 12}.s6{grid-column:span 6}}
 .hb .tagadm{white-space:nowrap}
 @media(max-width:600px){.hb .tagadm{display:none}.hb .logo{grid-column:1}}
-@media(max-width:700px){.s6{grid-column:span 12}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ctl{width:100%}.ctl .sm{flex:1}
+@media(max-width:700px){.act{flex-direction:row;min-width:0}.s6{grid-column:span 12}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ctl{width:100%}.ctl .sm{flex:1}
  table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding:10px 14px;border-bottom:1px solid var(--line)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:7.5em;text-align:start}.stack td::before{content:attr(data-l);float:inline-start;width:7em;margin-inline-start:-7.5em;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.03em;padding-top:2px}.stack td.num{text-align:start}.stack .act{justify-content:flex-start}}
 </style>
 </head>
@@ -235,7 +236,7 @@ function inscritos(){
   const list=S.us.slice().sort((a,b)=>b.criado-a.criado).filter(u=>(fst==='all'||(fst==='blq'?u.bloqueado:!u.bloqueado))&&(!t||[u.nome,u.email,u.cidade,u.uf,u.area,u.whatsapp].join(' ').toLowerCase().includes(t)));
   const nb=S.us.filter(u=>u.bloqueado).length;
   return `<div class="tbar"><input class="inp" id="q" type="search" placeholder="Buscar nome, e-mail, cidade, área" value="${esc(q)}" aria-label="Buscar inscritos"><div class="tctl"><div class="sm" id="fst"></div><button class="btn ghost" id="csv">Exportar CSV</button></div></div>
-  <div class="tw">${list.length?`<table class="stack"><thead><tr><th>Inscrito</th><th>Idade</th><th>Cidade</th><th>Área</th><th>Contato</th><th>Ranking</th><th>Inscrição</th><th>Status</th><th></th></tr></thead><tbody>${list.map(u=>`<tr class="${u.bloqueado?'blq':''}"><td><span class="who"><span class="av">${u.foto?`<img src="${u.foto}" alt="">`:esc(Conta.iniciais(u.nome))}</span><a href="pessoa.html#${u.id}">${esc(u.nome)}</a></span></td><td class="num">${Conta.idade(u.nascimento)}</td><td>${esc(u.cidade)}, ${u.uf}</td><td><span class="chip">${esc(u.area)}</span></td><td>${esc(u.email)}<br><span style="color:var(--mut)">${esc(u.whatsapp)}</span></td><td class="num">${!u.bloqueado&&rank.get(u.id)<=30?'Nº '+rank.get(u.id):'—'}</td><td class="num">${new Date(u.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><span class="chip ${u.bloqueado?'st-b':'st-a'}">${u.bloqueado?'Bloqueado':'Ativo'}</span></td><td><div class="act">${u.bloqueado?'':`<a class="mini" href="pessoa.html#${u.id}">Ver</a>`}<button class="mini" data-blq="${u.id}">${u.bloqueado?'Desbloquear':'Bloquear'}</button><button class="mini del" data-del="${u.id}">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:`<div class="none">${S.us.length?'Nenhum inscrito encontrado.':'Ninguém se inscreveu ainda.'}</div>`}</div>
+  <div class="tw">${list.length?`<table class="stack"><thead><tr><th>Inscrito</th><th>Idade</th><th>Cidade</th><th>Área</th><th>Contato</th><th>Ranking</th><th>Inscrição</th><th>Status</th><th></th></tr></thead><tbody>${list.map(u=>`<tr class="${u.bloqueado?'blq':''}"><td><span class="who"><span class="av">${u.foto?`<img src="${u.foto}" alt="">`:esc(Conta.iniciais(u.nome))}</span><a href="pessoa.html#${u.id}">${esc(u.nome)}</a></span></td><td class="num">${Conta.idade(u.nascimento)}</td><td>${esc(u.cidade)}, ${u.uf}</td><td><span class="chip">${esc(u.area)}</span></td><td class="ct">${esc(u.email).replace('@','@<wbr>')}<br><span style="color:var(--mut)">${esc(u.whatsapp)}</span></td><td class="num">${!u.bloqueado&&rank.get(u.id)<=30?'Nº '+rank.get(u.id):'—'}</td><td class="num">${new Date(u.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><span class="chip ${u.bloqueado?'st-b':'st-a'}">${u.bloqueado?'Bloqueado':'Ativo'}</span></td><td><div class="act"><button class="mini" data-blq="${u.id}">${u.bloqueado?'Desbloquear':'Bloquear'}</button><button class="mini del" data-del="${u.id}">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:`<div class="none">${S.us.length?'Nenhum inscrito encontrado.':'Ninguém se inscreveu ainda.'}</div>`}</div>
   <div class="foot"><span>${fmt(list.length)} de ${fmt(S.us.length)} inscritos · ${fmt(nb)} bloqueado${nb===1?'':'s'}</span></div>`;
 }
 function visitas(){
