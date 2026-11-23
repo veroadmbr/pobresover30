@@ -21,7 +21,7 @@ h1,h2{font-family:"Playfair Display",Georgia,serif;font-weight:400;margin:0;line
 .prog{height:4px;background:var(--line)}.prog i{display:block;height:100%;background:var(--ink);width:0;transition:width .35s ease}
 main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:clamp(28px,6vw,64px) 20px 48px}
 .seal{display:flex;align-items:center;gap:12px;margin-bottom:28px}
-.seal img{width:92px;height:auto;background:#fff;border-radius:6px;padding:6px}
+.seal img{width:104px;height:auto}
 .seal span{font-size:12px;color:var(--mut);line-height:1.4}
 .step-n{font:600 11px "Work Sans";text-transform:uppercase;letter-spacing:.05em;color:var(--mut);margin-bottom:10px}
 .q{font-size:clamp(30px,4.6vw,42px)}
@@ -91,7 +91,7 @@ const app=$('#app');
 
 function head(t,s){return `<div class="step-n">Passo ${step+1} de ${TOTAL}</div><h1 class="q">${t}</h1>${s?`<p class="sub">${s}</p>`:''}`}
 function acts(next='Continuar'){return `<div class="err" id="err"></div><div class="acts">${step>0?'<button type="button" class="btn ghost" id="back">Voltar</button>':'<span></span>'}<button class="btn" id="next">${next}</button></div>`}
-function seal(){return step===0?`<div class="seal"><img src="img/pobres-over30.svg" alt="Pobres Over 30"><span>Inscrição aberta para a lista de 2026.<br>Só para quem já passou dos 30.</span></div>`:''}
+function seal(){return step===0?`<div class="seal"><img class="lg30" src="img/pobres-over30.svg" alt="Pobres Over 30"><span>Inscrição aberta para a lista de 2026.<br>Só para quem já passou dos 30.</span></div>`:''}
 const err=m=>{$('#err').textContent=m||''};
 const iso=()=>`${d.ano}-${String(d.mes).padStart(2,'0')}-${String(d.dia).padStart(2,'0')}`;
 const diasNoMes=(m,a)=>new Date(a||2000,m,0).getDate();

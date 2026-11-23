@@ -88,3 +88,7 @@ textarea.inp{height:auto;min-height:120px;padding:14px 16px;resize:vertical;line
 @media(max-width:600px){.sm{width:auto;flex:1}}
 .psel.off .psel-btn{background:var(--soft);cursor:not-allowed;border-color:var(--line);box-shadow:none}
 .psel.off .psel-btn::after{opacity:.4}
+
+/* logo Over 30 (SVG sem fundo): no tema escuro, clareia o preto e mantém o vermelho */
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .lg30{filter:invert(1) hue-rotate(180deg)}}
+:root[data-theme=dark] .lg30{filter:invert(1) hue-rotate(180deg)}

@@ -19,7 +19,7 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Work Sans",system-ui,sans-serif;overflow-x:clip}
 h1,h2{font-family:"Playfair Display",Georgia,serif;font-weight:400;margin:0;line-height:1.08;text-wrap:balance}
 .w{max-width:1040px;margin:0 auto;padding:0 20px}
-.band{background:#fff;border-bottom:1px solid var(--line);padding:26px 20px;display:flex;justify-content:center}
+.band{border-bottom:1px solid var(--line);padding:26px 20px;display:flex;justify-content:center}
 .band img{width:clamp(140px,18vw,200px);height:auto;display:block}
 .bar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:20px 0;flex-wrap:wrap}
 .crumb{font-size:12px;color:var(--mut)}.crumb a{color:var(--ink)}
@@ -68,7 +68,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 </head>
 <body>
 <header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
-<div class="band"><img src="img/pobres-over30.svg" alt="Pobres Over 30, 2026"></div>
+<div class="band"><img class="lg30" src="img/pobres-over30.svg" alt="Pobres Over 30, 2026"></div>
 <main class="w" id="app"></main>
 <div class="toast" id="toast" role="status"></div>
 
