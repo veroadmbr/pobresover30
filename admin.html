@@ -249,9 +249,11 @@ function eventos(){
 }
 
 function ajustes(){
-  const on=Conta.exemplosAtivos();
+  const on=Conta.exemplosAtivos(),ig=Metricas.ignorado();
   return `<div class="grid"><div class="card s8"><div class="set"><div><h3>Perfis de exemplo</h3><p>${fmt(Conta.totalExemplos)} perfis fictícios com nome, cidade, área e história. Quando ligados, entram no top 30, no mural de últimos inscritos e têm página própria. Não contam nas métricas nem na lista de inscritos do painel.</p></div><button class="switch${on?' on':''}" id="ex" role="switch" aria-checked="${on}" aria-label="Perfis de exemplo"><i></i></button></div>
-  <div class="foot"><span>Status: <b style="color:var(--ink)">${on?'Ligados':'Desligados'}</b></span><span>${Conta.modo==='api'?'Vale para todos os visitantes.':'Modo demonstração: vale só para este navegador.'}</span></div></div></div>`;
+  <div class="foot"><span>Status: <b style="color:var(--ink)">${on?'Ligados':'Desligados'}</b></span><span>${Conta.modo==='api'?'Vale para todos os visitantes.':'Modo demonstração: vale só para este navegador.'}</span></div></div>
+  <div class="card s8"><div class="set"><div><h3>Não contar minhas visitas</h3><p>Visitas e ações feitas neste navegador ficam fora das métricas, e as que já foram registradas por ele são apagadas. Ao abrir o painel em outro navegador ou computador, ele também passa a ser ignorado.</p></div><button class="switch${ig?' on':''}" id="ign" role="switch" aria-checked="${ig}" aria-label="Não contar minhas visitas"><i></i></button></div>
+  <div class="foot"><span>Este navegador: <b style="color:var(--ink)">${ig?'Ignorado':'Contando visitas'}</b></span></div></div></div>`;
 }
 function confirmar(t,p,ok){$('#mT').textContent=t;$('#mP').textContent=p;$('#mod').classList.add('on');$('#mY').onclick=()=>{$('#mod').classList.remove('on');ok()};$('#mN').onclick=()=>$('#mod').classList.remove('on')}
 $('#mod').onclick=e=>{if(e.target.id==='mod')$('#mod').classList.remove('on')};
@@ -260,6 +262,7 @@ let D=null;
 async function painel(refetch){
   if(refetch||!D){try{D=await Conta.admin.dados()}catch(x){if(x.status===401)return gate();app.innerHTML=`<div class="gate"><h1>Não deu pra carregar</h1><p>${esc(x.message)}</p><button class="btn" onclick="location.reload()">Tentar de novo</button></div>`;return}}
   $('#out').hidden=false;
+  try{if(!localStorage.getItem('pobres-ignorar-visto')){localStorage.setItem('pobres-ignorar-visto','1');if(!Metricas.ignorado()){await Conta.admin.ignorar(true);D=await Conta.admin.dados()}}}catch(x){}
   calc();
   const tabs=[['geral','Visão geral'],['inscritos','Inscritos',S.us.length],['visitas','Visitas',S.vis.length],['eventos','Eventos',S.ev.length],['ajustes','Ajustes']];
   app.innerHTML=`<div class="w"><div class="top"><div><h1>Painel</h1><p>Atualizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</p></div><div class="ctl"><button class="pill-ex${Conta.exemplosAtivos()?' on':''}" id="exq" role="switch" aria-checked="${Conta.exemplosAtivos()}"><span class="sw"><i></i></span>Perfis de exemplo</button><div class="sm" id="per"></div><button class="btn ghost" id="ref">Atualizar</button></div></div>
@@ -279,6 +282,7 @@ async function painel(refetch){
     app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,async()=>{try{await Conta.admin.remover(u.id);await painel(true);toast('Inscrito removido')}catch(x){toast(x.message)}})});
   }
   const toggleEx=async()=>{const v=!Conta.exemplosAtivos();try{await Conta.admin.exemplos(v);await painel(true);toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')}catch(x){toast(x.message)}};
+  $('#ign')?.addEventListener('click',async()=>{const v=!Metricas.ignorado();try{await Conta.admin.ignorar(v);await painel(true);toast(v?'Este navegador não conta mais como visita':'Este navegador volta a contar visitas')}catch(x){toast(x.message)}});
   $('#exq').onclick=toggleEx;$('#ex')?.addEventListener('click',toggleEx);
   if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',async()=>{try{await Conta.admin.zerar();await painel(true);toast('Métricas zeradas')}catch(x){toast(x.message)}});
 }

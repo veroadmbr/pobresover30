@@ -9,10 +9,13 @@ export default async function handler(req, res) {
     const d = corpo(req);
     const tipo = d.tipo === 'evento' ? 'evento' : 'visita', nome = txt(d.nome, 40);
     if (!NOMES.includes(nome)) return json(res, 400, { erro: 'Evento inválido.' });
+    const vid = txt(d.vid, 40);
+    const ig = await q(`select valor from config where chave = 'ignorados'`);
+    if (ig[0] && Array.isArray(ig[0].valor) && ig[0].valor.includes(vid)) return json(res, 200, { ok: true, ignorado: true });
     const dados = {};
     for (const k of ['passo', 'peca', 'idade', 'uf', 'area', 'pessoa']) if (d.dados && d.dados[k] !== undefined) dados[k] = typeof d.dados[k] === 'number' ? d.dados[k] : txt(d.dados[k], 80);
     await q('insert into metricas (tipo, nome, pagina, vid, sid, origem, disp, dados) values ($1,$2,$3,$4,$5,$6,$7,$8)',
-      [tipo, nome, txt(d.pagina, 30), txt(d.vid, 40), txt(d.sid, 40), txt(d.origem, 60), txt(d.disp, 20), JSON.stringify(dados)]);
+      [tipo, nome, txt(d.pagina, 30), vid, txt(d.sid, 40), txt(d.origem, 60), txt(d.disp, 20), JSON.stringify(dados)]);
     json(res, 200, { ok: true });
   } catch (e) { erro(res, e) }
 }

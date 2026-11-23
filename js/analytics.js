@@ -24,7 +24,9 @@
   }
   const disp = () => /iPad|Tablet/i.test(navigator.userAgent) ? 'tablet' : /Mobi|Android|iPhone|iPod/i.test(navigator.userAgent) ? 'celular' : 'computador';
   const ORIG = origem();
+  const ignorado = () => { try { return localStorage.getItem('pobres-ignorar') === '1' } catch (e) { return false } };
   async function registrar(tipo, nome, dados) {
+    if (ignorado()) return;
     const reg = { tipo, nome, pagina: pagina(), vid: vid(), sid: sid(), origem: ORIG, disp: disp() };
     if (window.Conta) await Conta.pronto;
     if (window.Conta && Conta.modo === 'api') {
@@ -36,7 +38,10 @@
   window.Metricas = {
     track: (nome, dados) => { registrar('evento', nome, dados) },
     locais: get,
-    limparLocal: () => salvar([])
+    limparLocal: () => salvar([]),
+    vid,
+    ignorado,
+    ignorar(b) { try { b ? localStorage.setItem('pobres-ignorar', '1') : localStorage.removeItem('pobres-ignorar') } catch (e) {} if (b) salvar(get().filter(x => x.vid !== vid())) }
   };
   if (!/admin/.test(pagina())) registrar('visita', 'pagina', {});
 })();

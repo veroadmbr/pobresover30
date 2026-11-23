@@ -28,6 +28,15 @@ export default async function handler(req, res) {
         await q(`insert into config (chave, valor) values ('exemplos', $1) on conflict (chave) do update set valor = excluded.valor`, [JSON.stringify(!!d.valor)]);
         return json(res, 200, { exemplos: !!d.valor });
       }
+      if (d.acao === 'ignorar') {
+        const vid = txt(d.vid, 40); if (!vid) throw falha('Navegador inválido.');
+        const r = await q(`select valor from config where chave = 'ignorados'`);
+        let lista = r[0] && Array.isArray(r[0].valor) ? r[0].valor : [];
+        lista = d.valor ? [...new Set([...lista, vid])].slice(-50) : lista.filter(x => x !== vid);
+        await q(`insert into config (chave, valor) values ('ignorados', $1) on conflict (chave) do update set valor = excluded.valor`, [JSON.stringify(lista)]);
+        if (d.valor) await q('delete from metricas where vid = $1', [vid]);
+        return json(res, 200, { ignorados: lista.length });
+      }
       if (d.acao === 'zerar') { await q('delete from metricas'); return json(res, 200, { ok: true }) }
       throw falha('Ação desconhecida.');
     }

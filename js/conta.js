@@ -260,6 +260,11 @@
       },
       async remover(id) { if (C.modo === 'api') { await api('admin', { acao: 'remover', id }); C.pessoas = C.pessoas.filter(u => u.id !== id); return } ls.set(K, ls.get(K, []).filter(u => u.id !== id)); if (ls.get(S, null) === id) ls.del(S) },
       async exemplos(b) { if (C.modo === 'api') { const r = await api('admin', { acao: 'exemplos', valor: !!b }); C.exemplos = r.exemplos; return } ls.set('pobres-exemplos', !!b) },
+      async ignorar(b) {
+        const v = window.Metricas ? Metricas.vid() : '';
+        if (window.Metricas) Metricas.ignorar(b);
+        if (C.modo === 'api' && v) await api('admin', { acao: 'ignorar', vid: v, valor: !!b });
+      },
       async zerar() { if (C.modo === 'api') return api('admin', { acao: 'zerar' }); window.Metricas && Metricas.limparLocal() }
     },
     iniciais: n => (n || '?').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase(),
