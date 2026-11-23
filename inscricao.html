@@ -42,6 +42,20 @@ main{flex:1;width:100%;max-width:600px;margin:0 auto;padding:clamp(28px,6vw,64px
 .pane{animation:in .3s ease}
 @keyframes in{from{opacity:0;transform:translateY(10px)}}
 @media(prefers-reduced-motion:reduce){.pane{animation:none}.prog i{transition:none}}
+.upr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.pbg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.pbt{display:block;border:0;background:none;padding:0;cursor:pointer;text-align:left;color:var(--ink)}
+.pbt .ph{border-radius:10px;border:2px solid transparent;transition:border-color .15s}
+.pbt:hover .ph{border-color:var(--line)}
+.pbt.on .ph{border-color:var(--ink);box-shadow:0 0 0 3px light-dark(rgba(0,0,0,.08),rgba(255,255,255,.12))}
+.pbt.on .ph::after{content:"";position:absolute;right:8px;top:8px;width:24px;height:24px;border-radius:50%;background:var(--ink) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M6 12l4 4 8-8'/%3E%3C/svg%3E") center/14px no-repeat}
+.pbl{display:block;font-size:12px;font-weight:600;margin-top:6px}
+.pbt.load{cursor:default}.pbt.load .pbl{color:var(--mut)}
+.shim{position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,light-dark(rgba(255,255,255,.55),rgba(255,255,255,.08)) 50%,transparent 70%);background-size:200% 100%;animation:sh 1.2s linear infinite}
+@keyframes sh{from{background-position:120% 0}to{background-position:-80% 0}}
+@media(prefers-reduced-motion:reduce){.shim{animation:none}}
+#pbmsg{margin-top:12px}
+@media(max-width:520px){.pbg{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .up{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .up .ph{width:160px;border-radius:12px;flex:none}
 .up .ph svg{width:40%}
@@ -165,9 +179,32 @@ const sH={html:()=>head('Conte sua história.','Escreva com suas palavras ou esc
   },
   ok(){const v=$('#hist').value.trim();if(v.length<20){$('#hist').classList.add('bad');err('Escreva pelo menos uma frase ou escolha uma história pronta.');return}d.historia=v;return true}};
 
-const s4={html:()=>head('Mostra essa cara.','Uma foto quadrada fica melhor. Pode pular e colocar depois no perfil.')+`<div class="up"><div class="ph" id="pv">${d.foto?`<img src="${d.foto}" alt="">`:PERSON}</div><div><span class="btn ghost fileb">Escolher foto<input type="file" id="fp" accept="image/*" aria-label="Escolher foto"></span><div class="hint" id="fn">${d.foto?'Foto escolhida.':'JPG ou PNG.'}</div></div></div>`+acts(d.foto?'Continuar':'Pular por agora'),
-  mount(){$('#fp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{d.foto=await Conta.foto(f);$('#pv').innerHTML=`<img src="${d.foto}" alt="">`;$('#fn').textContent=f.name;$('#next').textContent='Continuar'}catch(x){err('Não deu pra ler essa imagem.')}}},
-  ok:()=>true};
+let fotoOrig='',pbList=[],pbEstado='',pbSel=-1;
+const s4={html:()=>head('Mostra essa cara.','Envie uma foto e a gente cria 3 versões em preto e branco, estilo capa de revista, para você escolher.')+`
+  <div class="upr"><span class="btn ghost fileb">${fotoOrig?'Trocar foto':'Escolher foto'}<input type="file" id="fp" accept="image/*" aria-label="Escolher foto"></span><span class="hint" id="fn">${fotoOrig?'':'Uma foto de rosto, bem iluminada, funciona melhor.'}</span></div>
+  <div class="pbg" id="pbg"></div><div class="hint" id="pbmsg" aria-live="polite"></div>`+acts(d.foto?'Continuar':'Pular por agora'),
+  mount(){
+    const LBL=['Original','Editorial 1','Editorial 2','Editorial 3'];
+    const paint=()=>{
+      if(!fotoOrig){$('#pbg').innerHTML='';return}
+      const tiles=[fotoOrig,...(pbEstado==='gerando'?[null,null,null]:pbList)];
+      $('#pbg').innerHTML=tiles.map((src,i)=>src?`<button type="button" class="pbt${pbSel===i?' on':''}" data-i="${i}" aria-pressed="${pbSel===i}"><span class="ph"><img src="${src}" alt="${LBL[i]}"></span><span class="pbl">${LBL[i]}</span></button>`:`<div class="pbt load" aria-hidden="true"><span class="ph"><span class="shim"></span></span><span class="pbl">Criando…</span></div>`).join('');
+      $('#pbg').querySelectorAll('.pbt[data-i]').forEach(b=>b.onclick=()=>{pbSel=+b.dataset.i;d.foto=tiles[pbSel];paint();$('#next').textContent='Continuar'});
+    };
+    paint();
+    $('#fp').onchange=async e=>{
+      const f=e.target.files[0];if(!f)return;err('');
+      let big;try{big=await Conta.foto(f,1024)}catch(x){err('Não deu pra ler essa imagem.');return}
+      const small=await Conta.redim(big,480);fotoOrig=small;
+      d.foto=small;pbSel=0;pbList=[];pbEstado='gerando';$('#fn').textContent=f.name;$('.fileb').firstChild.textContent='Trocar foto';$('#next').textContent='Continuar';
+      $('#pbmsg').textContent='Criando suas versões em preto e branco. Leva uns 20 segundos.';paint();
+      const r=await Conta.fotoIA(big);
+      pbList=r.fotos;pbEstado='pronto';pbSel=pbList.length?1:0;d.foto=pbList[0]||small;
+      $('#pbmsg').textContent=r.aviso?r.aviso+' Fizemos versões simples para você escolher.':'Escolha a versão que mais combina com você.';
+      paint();
+    };
+  },
+  ok(){if(pbEstado==='gerando'){err('Espere as versões ficarem prontas ou escolha a original.');return}return true}};
 
 const s5={html:()=>head('Agora, sua conta.','É com o e-mail e a senha que você entra para editar sua página.')+`
   <label class="field"><span class="lb">E-mail</span><input class="inp" id="em" type="email" autocomplete="email" inputmode="email" placeholder="voce@email.com" value="${esc(d.email)}"></label>

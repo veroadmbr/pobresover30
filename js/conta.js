@@ -283,6 +283,40 @@
       c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, size, size);
       return c.toDataURL('image/jpeg', .82);
     },
+    /* redimensiona uma imagem (dataURL) para um quadrado de `size` px */
+    async redim(src, size = 480) {
+      const im = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src });
+      const c = document.createElement('canvas'); c.width = c.height = size;
+      const m = Math.min(im.width, im.height);
+      c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, size, size);
+      return c.toDataURL('image/jpeg', .85);
+    },
+    /* 3 versões P&B feitas no próprio navegador (demonstração e plano B se a IA falhar) */
+    async pbLocal(src, size = 480) {
+      const base = await Conta.redim(src, size);
+      const im = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.src = base });
+      const estilos = [{ c: 1.55, b: -12, g: 0, v: .55 }, { c: 1.1, b: 14, g: 10, v: .2 }, { c: 1.3, b: 0, g: 22, v: .4 }];
+      return estilos.map(e => {
+        const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d');
+        x.drawImage(im, 0, 0); const d = x.getImageData(0, 0, size, size), p = d.data, h = size / 2;
+        for (let i = 0; i < p.length; i += 4) {
+          const k = i / 4, px = k % size, py = (k / size) | 0, dist = Math.hypot(px - h, py - h) / (h * 1.42);
+          let l = .299 * p[i] + .587 * p[i + 1] + .114 * p[i + 2];
+          l = (l - 128) * e.c + 128 + e.b + (Math.random() - .5) * e.g;
+          l *= 1 - e.v * dist * dist;
+          l = Math.max(0, Math.min(255, l)); p[i] = p[i + 1] = p[i + 2] = l;
+        }
+        x.putImageData(d, 0, 0); return c.toDataURL('image/jpeg', .85);
+      });
+    },
+    /* 3 versões editoriais P&B pela IA (Replicate, na Vercel); sem IA, usa as versões locais */
+    async fotoIA(src) {
+      if (C.modo === 'api') {
+        try { const r = await api('foto-ia', { foto: await Conta.redim(src, 1024) }); return { fotos: await Promise.all(r.fotos.map(f => Conta.redim(f, 480))), ia: true } }
+        catch (e) { return { fotos: await Conta.pbLocal(src), ia: false, aviso: e.status === 501 ? '' : e.message } }
+      }
+      return { fotos: await Conta.pbLocal(src), ia: false, aviso: '' };
+    },
     /* download: usa o recurso do artefato quando existe; senão, link de download comum */
     async baixar(blob, filename) {
       if (window.claude && typeof window.claude.use === 'function') {

@@ -2,5 +2,8 @@
   "trailingSlash": false,
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" }
-  ]
+  ],
+  "functions": {
+    "api/foto-ia.js": { "maxDuration": 60 }
+  }
 }
