@@ -40,6 +40,7 @@
     locais: get,
     limparLocal: () => salvar([]),
     vid,
+    ignorarVid(v) { salvar(get().filter(x => x.vid !== v)) },
     ignorado,
     ignorar(b) { try { b ? localStorage.setItem('pobres-ignorar', '1') : localStorage.removeItem('pobres-ignorar') } catch (e) {} if (b) salvar(get().filter(x => x.vid !== vid())) }
   };

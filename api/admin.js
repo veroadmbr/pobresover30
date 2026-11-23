@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         lista = d.valor ? [...new Set([...lista, vid])].slice(-50) : lista.filter(x => x !== vid);
         await q(`insert into config (chave, valor) values ('ignorados', $1) on conflict (chave) do update set valor = excluded.valor`, [JSON.stringify(lista)]);
         if (d.valor) await q('delete from metricas where vid = $1', [vid]);
-        setCookie(req, res, 'pobres_nc', d.valor ? assinar({ nc: 1 }, 730) : '', 730);
+        if (d.proprio !== false) setCookie(req, res, 'pobres_nc', d.valor ? assinar({ nc: 1 }, 730) : '', 730);
         return json(res, 200, { ignorados: lista.length });
       }
       if (d.acao === 'zerar') { await q('delete from metricas'); return json(res, 200, { ok: true }) }

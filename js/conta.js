@@ -271,6 +271,7 @@
         if (window.Metricas) Metricas.ignorar(b);
         if (C.modo === 'api' && v) await api('admin', { acao: 'ignorar', vid: v, valor: !!b });
       },
+      async ignorarVisitante(vid) { if (C.modo === 'api') return api('admin', { acao: 'ignorar', vid, valor: true, proprio: false }); window.Metricas && Metricas.limparLocal && Metricas.ignorarVid && Metricas.ignorarVid(vid) },
       async zerar() { if (C.modo === 'api') return api('admin', { acao: 'zerar' }); window.Metricas && Metricas.limparLocal() }
     },
     iniciais: n => (n || '?').trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase(),
