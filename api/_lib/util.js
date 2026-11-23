@@ -22,6 +22,7 @@ const SCHEMA = [
     historia text default '', frase text default '', instagram text default '', foto text default '',
     email text unique not null, whatsapp text default '', senha text not null,
     criado timestamptz not null default now())`,
+  `alter table usuarios add column if not exists bloqueado boolean not null default false`,
   `create table if not exists metricas (
     id bigserial primary key, t timestamptz not null default now(), tipo text, nome text, pagina text,
     vid text, sid text, origem text, disp text, dados jsonb default '{}'::jsonb)`,
@@ -138,13 +139,17 @@ export async function salvarFoto(uid, foto) {
 export function publico(u) {
   return { id: u.id, primeiro: u.primeiro, sobrenome: u.sobrenome, nome: u.nome, nascimento: u.nascimento, cidade: u.cidade, uf: u.uf, area: u.area, historia: u.historia || '', frase: u.frase || '', instagram: u.instagram || '', foto: u.foto || '', criado: new Date(u.criado).getTime() };
 }
-export function completo(u) { return { ...publico(u), email: u.email, whatsapp: u.whatsapp || '' } }
+export function completo(u) { return { ...publico(u), email: u.email, whatsapp: u.whatsapp || '', bloqueado: !!u.bloqueado } }
+export async function apagarFoto(url) {
+  if (!url || !/blob\.vercel-storage\.com/.test(url) || !process.env.BLOB_READ_WRITE_TOKEN) return;
+  try { const { del } = await import('@vercel/blob'); await del(url) } catch (e) { console.error('apagarFoto', e) }
+}
 
 export async function sessao(req) {
   const d = verificar(cookies(req).pobres_s);
   if (!d || !d.uid) return null;
   const r = await q('select * from usuarios where id = $1', [d.uid]);
-  return r[0] || null;
+  return r[0] && !r[0].bloqueado ? r[0] : null;
 }
 export function ehAdmin(req) { const d = verificar(cookies(req).pobres_adm); return !!(d && d.adm) }
 export async function exemplos() {

@@ -1,6 +1,6 @@
 /* Pobres — conta do inscrito: cadastro, login, sessão, perfil, e-mail/senha e recuperação */
 import crypto from 'node:crypto';
-import { q, json, corpo, erro, falha, assinar, setCookie, hashSenha, confereSenha, rid, idade, emailOk, txt, salvarFoto, completo, sessao, origem } from './_lib/util.js';
+import { q, json, corpo, erro, falha, assinar, setCookie, hashSenha, confereSenha, rid, idade, emailOk, txt, salvarFoto, apagarFoto, completo, sessao, origem } from './_lib/util.js';
 
 const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
 
@@ -67,6 +67,7 @@ export default async function handler(req, res) {
       const email = txt(d.email, 120).toLowerCase();
       const r = await q('select * from usuarios where email = $1', [email]);
       if (!r[0] || !confereSenha(d.senha, r[0].senha)) throw falha('E-mail ou senha incorretos.', 401);
+      if (r[0].bloqueado) throw falha('Sua conta está suspensa. Fale com o suporte.', 403);
       setCookie(req, res, 'pobres_s', assinar({ uid: r[0].id }));
       return json(res, 200, { usuario: completo(r[0]) });
     }
@@ -134,6 +135,14 @@ export default async function handler(req, res) {
       }
       const u = (await q('select * from usuarios where id = $1', [me.id]))[0];
       return json(res, 200, { usuario: completo(u) });
+    }
+
+    if (acao === 'excluir') {
+      await q('delete from resets where uid = $1', [me.id]);
+      await q('delete from usuarios where id = $1', [me.id]);
+      await apagarFoto(me.foto);
+      setCookie(req, res, 'pobres_s', '');
+      return json(res, 200, { ok: true });
     }
 
     throw falha('Ação desconhecida.');

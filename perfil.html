@@ -61,6 +61,11 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 .age{display:inline-flex;margin-top:8px;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;background:var(--soft)}.age.ok{color:var(--up)}.age.no{color:var(--dn)}
 .sec{border-top:1px solid var(--line);margin:8px 0 18px;padding-top:20px}.sec h3{font:600 20px "Playfair Display",Georgia,serif;margin:0}.sec>.hint{margin:4px 0 16px}
 @media(max-width:520px){.row3{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.row3>:nth-child(3){grid-column:1/-1}}
+.mod{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;place-items:center;z-index:60;padding:16px}.mod.on{display:grid}
+.box{background:var(--card);border-radius:12px;padding:24px;width:min(420px,100%)}
+.box h2{font:600 24px "Playfair Display",Georgia,serif;margin:0}.box p{color:var(--mut);margin:8px 0 12px;font-size:14px}
+.box .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}.box .btn{height:44px;font-size:14px;min-width:90px}
+.perigo{margin-top:30px}.btn.del{border-color:var(--dn);color:var(--dn)}.btn.del:hover{background:var(--dn);color:#fff}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70}.toast.on{opacity:1}
 @media(max-width:760px){.sheet,.edit{grid-template-columns:minmax(0,1fr)}.pic{max-width:420px}}
 @media(max-width:480px){.facts{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.facts div:nth-child(3){grid-column:1/-1;border-left:0;padding-left:0;border-top:1px solid var(--line)}.tools{width:100%}.tools .btn{flex:1}}
@@ -70,6 +75,7 @@ blockquote{margin:28px 0 0;font:400 clamp(21px,2.4vw,26px)/1.35 "Playfair Displa
 <header class="hd"><div class="hb"><a href="index.html" class="logo">Pobres</a><div class="acct" id="acct"></div></div></header>
 <div class="band"><img class="lg30" src="img/pobres-over30.svg" alt="Pobres Over 30, 2026"></div>
 <main class="w" id="app"></main>
+<div class="mod" id="mod" role="dialog" aria-modal="true" aria-labelledby="mT"><div class="box"><h2 id="mT"></h2><p id="mP"></p><div class="err" id="mE"></div><div class="acts"><button type="button" class="btn ghost" id="mN">Não</button><button type="button" class="btn red" id="mY">Sim</button></div></div></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="data/cidades.js"></script>
@@ -129,6 +135,7 @@ function edit(){
       <label class="field" id="curW"><span class="lb">Senha atual</span><span class="pw"><input class="inp" id="cp" type="password" autocomplete="current-password" placeholder="Obrigatória para trocar e-mail ou senha"><button type="button" class="eye" data-t="cp" aria-label="Mostrar senha">${EYE}</button></span></label></div>
       <div class="err" id="err"></div>
       <div class="save"><button type="button" class="btn ghost" id="cancel">Cancelar</button><button class="btn" id="sv">Salvar alterações</button></div>
+      <div class="sec perigo"><h3>Excluir conta</h3><p class="hint">Apaga sua inscrição, sua foto e sua página Pobres Over 30 de vez. Não dá pra desfazer.</p><button type="button" class="btn ghost del" id="delc">Excluir minha conta</button></div>
     </div></form>`;
   const cs=PSelect($('#cid'),{items:Conta.cidades(me.uf),value:me.cidade,search:true,placeholder:'Selecione a cidade',label:'Cidade'});
   const uf=PSelect($('#uf'),{items:Conta.estados(),value:me.uf,search:true,label:'Estado',onChange:v=>{cs.setItems(Conta.cidades(v));cs.set(null);setTimeout(()=>cs.el.querySelector('.psel-btn').click(),60)}});
@@ -143,6 +150,12 @@ function edit(){
   $('#fp').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{foto=await Conta.foto(f);$('#pv').innerHTML=`<img src="${foto}" alt="">`}catch(x){$('#err').textContent='Não deu pra ler essa imagem.'}};
   $('#rm')?.addEventListener('click',()=>{foto='';$('#pv').innerHTML=PERSON});
   $('#cancel').onclick=view;
+  $('#delc').onclick=()=>{
+    $('#mT').textContent='Excluir sua conta?';$('#mP').textContent='Sua inscrição, sua foto e sua página serão apagadas de vez. Essa ação não pode ser desfeita.';$('#mE').textContent='';
+    $('#mod').classList.add('on');$('#mN').focus();
+    $('#mN').onclick=()=>$('#mod').classList.remove('on');
+    $('#mY').onclick=async()=>{$('#mY').disabled=true;$('#mY').textContent='Excluindo...';try{await Conta.excluirConta();location.href='index.html'}catch(x){$('#mE').textContent=x.message;$('#mY').disabled=false;$('#mY').textContent='Sim'}};
+  };
   /* nascimento com dropdowns próprios */
   const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],AN=new Date().getFullYear();
   const [y0,m0,d0]=me.nascimento.split('-').map(Number);

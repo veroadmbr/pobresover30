@@ -97,6 +97,9 @@ td a{color:var(--ink);font-weight:600}
 .pill-ex .sw{width:36px;height:22px;border-radius:999px;background:var(--line);position:relative;transition:background .2s}
 .pill-ex .sw i{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .2s}
 .pill-ex.on .sw{background:var(--up)}.pill-ex.on .sw i{transform:translateX(14px)}
+.tctl{display:flex;gap:10px;flex-wrap:wrap}.tctl .sm{width:170px}
+tr.blq td{color:var(--mut)}tr.blq td a{color:var(--mut)}
+.chip.st-a{color:var(--up)}.chip.st-b{color:var(--dn)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 20px;border-radius:999px;font-size:14px;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none;z-index:80}.toast.on{opacity:1}
 @media(max-width:1100px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.s8,.s4{grid-column:span 12}.s6{grid-column:span 6}}
 .hb .tagadm{white-space:nowrap}
@@ -108,7 +111,7 @@ td a{color:var(--ink);font-weight:600}
 <body>
 <header class="hd"><div class="hb"><span class="tagadm">Admin</span><a href="index.html" class="logo">Pobres</a><button class="out" id="out" hidden>Sair</button></div></header>
 <main id="app"></main>
-<div class="mod" id="mod" role="dialog" aria-modal="true"><div class="box"><h2 id="mT"></h2><p id="mP"></p><div class="acts"><button class="btn ghost" id="mN">Cancelar</button><button class="btn red" id="mY">Confirmar</button></div></div></div>
+<div class="mod" id="mod" role="dialog" aria-modal="true"><div class="box"><h2 id="mT"></h2><p id="mP"></p><div class="acts"><button class="btn ghost" id="mN">Não</button><button class="btn red" id="mY">Sim</button></div></div></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script src="data/cidades.js"></script>
@@ -131,7 +134,7 @@ function gate(){
 }
 
 /* ---------- dados ---------- */
-let per='30',tab='geral',q='',S={};
+let per='30',tab='geral',q='',fst='all',S={};
 const PER=[{value:'1',label:'Hoje'},{value:'7',label:'Últimos 7 dias'},{value:'30',label:'Últimos 30 dias'},{value:'90',label:'Últimos 90 dias'},{value:'all',label:'Todo o período'}];
 const ini=d=>{const x=new Date(d);x.setHours(0,0,0,0);return x.getTime()};
 function janela(){
@@ -229,10 +232,11 @@ function barras(el){
 
 function inscritos(){
   const t=q.toLowerCase(),rank=new Map(Conta.ranking().map(u=>[u.id,u.rank]));
-  const list=S.us.slice().sort((a,b)=>b.criado-a.criado).filter(u=>!t||[u.nome,u.email,u.cidade,u.uf,u.area,u.whatsapp].join(' ').toLowerCase().includes(t));
-  return `<div class="tbar"><input class="inp" id="q" type="search" placeholder="Buscar nome, e-mail, cidade, área" value="${esc(q)}" aria-label="Buscar inscritos"><button class="btn ghost" id="csv">Exportar CSV</button></div>
-  <div class="tw">${list.length?`<table class="stack"><thead><tr><th>Inscrito</th><th>Idade</th><th>Cidade</th><th>Área</th><th>Contato</th><th>Ranking</th><th>Inscrição</th><th></th></tr></thead><tbody>${list.map(u=>`<tr><td><span class="who"><span class="av">${u.foto?`<img src="${u.foto}" alt="">`:esc(Conta.iniciais(u.nome))}</span><a href="pessoa.html#${u.id}">${esc(u.nome)}</a></span></td><td class="num">${Conta.idade(u.nascimento)}</td><td>${esc(u.cidade)}, ${u.uf}</td><td><span class="chip">${esc(u.area)}</span></td><td>${esc(u.email)}<br><span style="color:var(--mut)">${esc(u.whatsapp)}</span></td><td class="num">${rank.get(u.id)<=30?'Nº '+rank.get(u.id):'—'}</td><td class="num">${new Date(u.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><div class="act"><a class="mini" href="pessoa.html#${u.id}">Ver</a><button class="mini del" data-del="${u.id}">Remover</button></div></td></tr>`).join('')}</tbody></table>`:`<div class="none">${S.us.length?'Nenhum inscrito encontrado.':'Ninguém se inscreveu ainda.'}</div>`}</div>
-  <div class="foot"><span>${fmt(list.length)} de ${fmt(S.us.length)} inscritos</span></div>`;
+  const list=S.us.slice().sort((a,b)=>b.criado-a.criado).filter(u=>(fst==='all'||(fst==='blq'?u.bloqueado:!u.bloqueado))&&(!t||[u.nome,u.email,u.cidade,u.uf,u.area,u.whatsapp].join(' ').toLowerCase().includes(t)));
+  const nb=S.us.filter(u=>u.bloqueado).length;
+  return `<div class="tbar"><input class="inp" id="q" type="search" placeholder="Buscar nome, e-mail, cidade, área" value="${esc(q)}" aria-label="Buscar inscritos"><div class="tctl"><div class="sm" id="fst"></div><button class="btn ghost" id="csv">Exportar CSV</button></div></div>
+  <div class="tw">${list.length?`<table class="stack"><thead><tr><th>Inscrito</th><th>Idade</th><th>Cidade</th><th>Área</th><th>Contato</th><th>Ranking</th><th>Inscrição</th><th>Status</th><th></th></tr></thead><tbody>${list.map(u=>`<tr class="${u.bloqueado?'blq':''}"><td><span class="who"><span class="av">${u.foto?`<img src="${u.foto}" alt="">`:esc(Conta.iniciais(u.nome))}</span><a href="pessoa.html#${u.id}">${esc(u.nome)}</a></span></td><td class="num">${Conta.idade(u.nascimento)}</td><td>${esc(u.cidade)}, ${u.uf}</td><td><span class="chip">${esc(u.area)}</span></td><td>${esc(u.email)}<br><span style="color:var(--mut)">${esc(u.whatsapp)}</span></td><td class="num">${!u.bloqueado&&rank.get(u.id)<=30?'Nº '+rank.get(u.id):'—'}</td><td class="num">${new Date(u.criado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td><span class="chip ${u.bloqueado?'st-b':'st-a'}">${u.bloqueado?'Bloqueado':'Ativo'}</span></td><td><div class="act">${u.bloqueado?'':`<a class="mini" href="pessoa.html#${u.id}">Ver</a>`}<button class="mini" data-blq="${u.id}">${u.bloqueado?'Desbloquear':'Bloquear'}</button><button class="mini del" data-del="${u.id}">Excluir</button></div></td></tr>`).join('')}</tbody></table>`:`<div class="none">${S.us.length?'Nenhum inscrito encontrado.':'Ninguém se inscreveu ainda.'}</div>`}</div>
+  <div class="foot"><span>${fmt(list.length)} de ${fmt(S.us.length)} inscritos · ${fmt(nb)} bloqueado${nb===1?'':'s'}</span></div>`;
 }
 function visitas(){
   const v=S.vis.slice().reverse().slice(0,300);
@@ -279,14 +283,18 @@ async function painel(refetch){
       const cell=v=>`"${String(v??'').replace(/"/g,'""')}"`;
       const lines=[cols.join(';'),...S.us.map(u=>[u.primeiro||u.nome,u.sobrenome||'',u.nascimento,Conta.idade(u.nascimento),u.cidade,u.uf,u.area,u.email,u.whatsapp,u.instagram,u.historia||u.bio||'',new Date(u.criado).toLocaleString('pt-BR')].map(cell).join(';'))];
       const ok=await Conta.baixar(new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'}),`pobres-inscritos-${new Date().toISOString().slice(0,10)}.csv`);if(ok)toast('CSV exportado')};
-    app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Remover inscrito?',`${u.nome} sai da lista, do top 30 e do mural. Essa ação não pode ser desfeita.`,async()=>{try{await Conta.admin.remover(u.id);await painel(true);toast('Inscrito removido')}catch(x){toast(x.message)}})});
+    PSelect($('#fst'),{items:[{value:'all',label:'Todos'},{value:'ati',label:'Ativos'},{value:'blq',label:'Bloqueados'}],value:fst,label:'Status',onChange:v=>{fst=v;painel()}});
+    app.querySelectorAll('[data-blq]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.blq),v=!u.bloqueado;
+      confirmar(v?'Bloquear este inscrito?':'Desbloquear este inscrito?',v?`${u.nome} some do top 30, do mural e da página dele, e não consegue mais entrar na conta. Você pode desbloquear depois.`:`${u.nome} volta a aparecer no site e consegue entrar na conta de novo.`,
+      async()=>{try{await Conta.admin.bloquear(u.id,v);await painel(true);toast(v?'Inscrito bloqueado':'Inscrito desbloqueado')}catch(x){toast(x.message)}})});
+    app.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{const u=S.us.find(x=>x.id===b.dataset.del);confirmar('Excluir este inscrito?',`A conta de ${u.nome} será apagada de vez, com foto e página. Essa ação não pode ser desfeita.`,async()=>{try{await Conta.admin.remover(u.id);await painel(true);toast('Inscrito excluído')}catch(x){toast(x.message)}})});
   }
-  const toggleEx=async()=>{const v=!Conta.exemplosAtivos();try{await Conta.admin.exemplos(v);await painel(true);toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')}catch(x){toast(x.message)}};
+  const toggleEx=()=>{const v=!Conta.exemplosAtivos();confirmar(v?'Ligar os perfis de exemplo?':'Desligar os perfis de exemplo?',v?'Os perfis fictícios passam a aparecer no top 30 e no mural para todos os visitantes.':'Os perfis fictícios deixam de aparecer no site.',async()=>{try{await Conta.admin.exemplos(v);await painel(true);toast(v?'Perfis de exemplo ligados':'Perfis de exemplo desligados')}catch(x){toast(x.message)}})};
   $('#ign')?.addEventListener('click',async()=>{const v=!Metricas.ignorado();try{await Conta.admin.ignorar(v);await painel(true);toast(v?'Este navegador não conta mais como visita':'Este navegador volta a contar visitas')}catch(x){toast(x.message)}});
   $('#exq').onclick=toggleEx;$('#ex')?.addEventListener('click',toggleEx);
   if(tab==='eventos')$('#zerar').onclick=()=>confirmar('Zerar métricas?','Todas as visitas e eventos registrados serão apagados. Os inscritos continuam.',async()=>{try{await Conta.admin.zerar();await painel(true);toast('Métricas zeradas')}catch(x){toast(x.message)}});
 }
-$('#out').onclick=async()=>{await Conta.admin.sair();D=null;gate()};
+$('#out').onclick=()=>confirmar('Sair do painel?','Você vai precisar digitar a senha de novo para entrar.',async()=>{await Conta.admin.sair();D=null;gate()});
 Conta.pronto.then(()=>painel(true));
 }
 </script>

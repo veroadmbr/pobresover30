@@ -1,6 +1,6 @@
 /* Pobres — painel admin: login, dados do painel, remover inscrito, perfis de exemplo, zerar métricas */
 import crypto from 'node:crypto';
-import { q, json, corpo, erro, falha, assinar, setCookie, ehAdmin, completo, exemplos, txt } from './_lib/util.js';
+import { q, json, corpo, erro, falha, assinar, setCookie, ehAdmin, completo, exemplos, txt, apagarFoto } from './_lib/util.js';
 
 const igual = (a, b) => { const x = crypto.createHash('sha256').update(String(a)).digest(), y = crypto.createHash('sha256').update(String(b)).digest(); return crypto.timingSafeEqual(x, y) };
 
@@ -23,7 +23,13 @@ export default async function handler(req, res) {
       }
       if (d.acao === 'sair') { setCookie(req, res, 'pobres_adm', ''); return json(res, 200, { ok: true }) }
       if (!ehAdmin(req)) throw falha('Acesso restrito.', 401);
-      if (d.acao === 'remover') { await q('delete from usuarios where id = $1', [txt(d.id, 60)]); return json(res, 200, { ok: true }) }
+      if (d.acao === 'remover') {
+        const r = await q('delete from usuarios where id = $1 returning foto', [txt(d.id, 60)]);
+        await q('delete from resets where uid = $1', [txt(d.id, 60)]);
+        if (r[0]) await apagarFoto(r[0].foto);
+        return json(res, 200, { ok: true });
+      }
+      if (d.acao === 'bloquear') { await q('update usuarios set bloqueado = $1 where id = $2', [!!d.valor, txt(d.id, 60)]); return json(res, 200, { ok: true, bloqueado: !!d.valor }) }
       if (d.acao === 'exemplos') {
         await q(`insert into config (chave, valor) values ('exemplos', $1) on conflict (chave) do update set valor = excluded.valor`, [JSON.stringify(!!d.valor)]);
         return json(res, 200, { exemplos: !!d.valor });

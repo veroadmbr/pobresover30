@@ -174,13 +174,13 @@
     ESPECIAIS, GERAIS,
     get modo() { return C.modo },
     get erroServidor() { return C.erro },
-    users: () => C.modo === 'api' ? C.pessoas : ls.get(K, []),
+    users: () => C.modo === 'api' ? C.pessoas : ls.get(K, []).filter(u => !u.bloqueado),
     exemplosAtivos() { if (C.modo === 'api') return C.exemplos; const v = ls.get('pobres-exemplos', null); return v === null ? EXEMPLOS_PADRAO : !!v },
     totalExemplos: SEEDS.length,
     seeds: () => Conta.exemplosAtivos() ? SEEDS : [],
     todos: () => [...Conta.users(), ...Conta.seeds()],
     pessoa(id) { const r = Conta.ranking().find(u => u.id === id); return r ? (r.rank <= 30 ? r : { ...r, rank: null }) : null },
-    atual() { if (C.modo === 'api') return C.me; const id = ls.get(S, null); return id ? ls.get(K, []).find(u => u.id === id) || null : null },
+    atual() { if (C.modo === 'api') return C.me; const id = ls.get(S, null); const u = id ? ls.get(K, []).find(u => u.id === id) : null; return u && !u.bloqueado ? u : null },
     async criar(d) {
       if (C.modo === 'api') { const r = await api('auth', { acao: 'cadastrar', ...d }); C.me = r.usuario; trocaPessoa(r.usuario); return r.usuario }
       const us = ls.get(K, []), email = d.email.trim().toLowerCase();
@@ -201,8 +201,13 @@
       if (C.modo === 'api') { const r = await api('auth', { acao: 'entrar', email, senha }); C.me = r.usuario; return r.usuario }
       const u = ls.get(K, []).find(x => x.email === email.trim().toLowerCase());
       if (!u || u.senha !== await hash(senha)) throw new Error('E-mail ou senha incorretos.');
+      if (u.bloqueado) throw new Error('Sua conta está suspensa. Fale com o suporte.');
       ls.set(S, u.id);
       return u;
+    },
+    async excluirConta() {
+      if (C.modo === 'api') { await api('auth', { acao: 'excluir' }); C.pessoas = C.pessoas.filter(u => u.id !== (C.me && C.me.id)); C.me = null; return }
+      const id = ls.get(S, null); ls.set(K, ls.get(K, []).filter(u => u.id !== id)); ls.del(S);
     },
     async sair() { if (C.modo === 'api') { try { await api('auth', { acao: 'sair' }) } catch (e) {} C.me = null } else ls.del(S) },
     /* troca de e-mail e/ou senha: sempre pede a senha atual */
@@ -259,6 +264,7 @@
         return { usuarios: ls.get(K, []), metricas: window.Metricas ? Metricas.locais() : [], exemplos: Conta.exemplosAtivos() };
       },
       async remover(id) { if (C.modo === 'api') { await api('admin', { acao: 'remover', id }); C.pessoas = C.pessoas.filter(u => u.id !== id); return } ls.set(K, ls.get(K, []).filter(u => u.id !== id)); if (ls.get(S, null) === id) ls.del(S) },
+      async bloquear(id, b) { if (C.modo === 'api') { await api('admin', { acao: 'bloquear', id, valor: !!b }); return } ls.set(K, ls.get(K, []).map(u => u.id === id ? { ...u, bloqueado: !!b } : u)) },
       async exemplos(b) { if (C.modo === 'api') { const r = await api('admin', { acao: 'exemplos', valor: !!b }); C.exemplos = r.exemplos; return } ls.set('pobres-exemplos', !!b) },
       async ignorar(b) {
         const v = window.Metricas ? Metricas.vid() : '';
