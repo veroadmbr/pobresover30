@@ -123,12 +123,11 @@ const toast=m=>{const t=$('#toast');t.textContent=m;t.classList.add('on');clearT
 function gate(){
   $('#out').hidden=true;
   app.innerHTML=`<form class="gate" id="g" novalidate><h1>Painel Pobres</h1><p>Acesso restrito à equipe.</p>
-  <label class="field"><span class="lb">E-mail</span><input class="inp" id="ge" type="email" autocomplete="username" placeholder="admin@pobres.com.br"></label>
-  <label class="field"><span class="lb">Senha</span><span class="pw"><input class="inp" id="gp" type="password" autocomplete="current-password" placeholder="Senha"><button type="button" class="eye" id="eye" aria-label="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
+  <label class="field"><span class="lb">Senha</span><span class="pw"><input class="inp" id="gp" type="password" autocomplete="current-password" placeholder="Senha do painel" autofocus><button type="button" class="eye" id="eye" aria-label="Mostrar senha"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button></span></label>
   <button class="btn">Entrar no painel</button><div class="err" id="ge2"></div></form>`;
   $('#eye').onclick=()=>{const i=$('#gp');i.type=i.type==='password'?'text':'password'};
-  $('#g').onsubmit=async e=>{e.preventDefault();const em=$('#ge').value.trim().toLowerCase(),pw=$('#gp').value;
-    try{await Conta.admin.entrar(em,pw);painel(true)}catch(x){$('#ge2').textContent=x.message}};
+  $('#g').onsubmit=async e=>{e.preventDefault();const pw=$('#gp').value;if(!pw){$('#ge2').textContent='Digite a senha.';return}
+    try{await Conta.admin.entrar(pw);painel(true)}catch(x){$('#ge2').textContent=x.message}};
 }
 
 /* ---------- dados ---------- */

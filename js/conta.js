@@ -166,7 +166,7 @@
   }
   const pub = u => { const { email, whatsapp, senha, ...r } = u; return r };
   const trocaPessoa = u => { const i = C.pessoas.findIndex(x => x.id === u.id), p = pub(u); if (i >= 0) C.pessoas[i] = p; else C.pessoas.unshift(p) };
-  const ADMIN_LOCAL = '09e780b07ce988d6ded56ee167d5fb120d3862d77fe3188ea895efc27b85d10b'; /* só para a demonstração sem servidor */
+  const ADMIN_LOCAL = '98fbabc5409a8f23bc3a01ff6620b0a5b480430abe91fa29f55463aedf483011'; /* só para a demonstração sem servidor */
   const sha = async s => { try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('') } catch (e) { return '' } };
 
   const Conta = {
@@ -245,10 +245,10 @@
     },
     /* ---------- admin ---------- */
     admin: {
-      async entrar(email, senha) {
-        if (C.modo === 'api') return api('admin', { acao: 'entrar', email, senha });
-        const h = await sha(`pobres-admin:${email.trim().toLowerCase()}:${senha}`);
-        if (h !== ADMIN_LOCAL) throw new Error('E-mail ou senha incorretos.');
+      async entrar(senha) {
+        if (C.modo === 'api') return api('admin', { acao: 'entrar', senha });
+        const h = await sha(`pobres-admin:${senha}`);
+        if (h !== ADMIN_LOCAL) throw new Error('Senha incorreta.');
         try { sessionStorage.setItem('pobres-admin', h) } catch (e) {}
       },
       async sair() { if (C.modo === 'api') { try { await api('admin', { acao: 'sair' }) } catch (e) {} } else { try { sessionStorage.removeItem('pobres-admin') } catch (e) {} } },

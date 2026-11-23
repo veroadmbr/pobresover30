@@ -9,10 +9,15 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const d = corpo(req);
       if (d.acao === 'entrar') {
-        const E = process.env.ADMIN_EMAIL, S = process.env.ADMIN_PASSWORD;
-        if (!E || !S) throw falha('Configure ADMIN_EMAIL e ADMIN_PASSWORD nas variáveis da Vercel.', 500);
-        const ok = igual(txt(d.email, 120).toLowerCase(), E.toLowerCase()) & igual(d.senha || '', S);
-        if (!ok) throw falha('E-mail ou senha incorretos.', 401);
+        const S = process.env.ADMIN_PASSWORD;
+        if (!S) throw falha('Configure ADMIN_PASSWORD nas variáveis da Vercel.', 500);
+        /* trava: no máximo 8 tentativas erradas por IP a cada 15 minutos */
+        const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim().slice(0, 60);
+        await q(`create table if not exists admin_tentativas (ip text, t timestamptz default now())`);
+        const n = (await q(`select count(*)::int as n from admin_tentativas where ip = $1 and t > now() - interval '15 minutes'`, [ip]))[0].n;
+        if (n >= 8) throw falha('Muitas tentativas. Espere 15 minutos e tente de novo.', 429);
+        if (!igual(String(d.senha || ''), S)) { await q('insert into admin_tentativas (ip) values ($1)', [ip]); throw falha('Senha incorreta.', 401) }
+        await q('delete from admin_tentativas where ip = $1 or t < now() - interval \'1 day\'', [ip]);
         setCookie(req, res, 'pobres_adm', assinar({ adm: 1 }, 1), 1);
         return json(res, 200, { ok: true });
       }
