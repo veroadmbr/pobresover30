@@ -1,11 +1,9 @@
-/* Pobres — 3 versões da foto em preto e branco, estilo editorial de revista (Replicate) */
+/* Pobres — 1 versão da foto em preto e branco, estilo editorial de revista (Replicate) */
 import { q, json, corpo, erro, falha } from './_lib/util.js';
 
 const MANTER = " Keep the person's face, identity, age, expression, hairstyle and pose exactly the same. Photorealistic, no text, no logos.";
 const ESTILOS = [
-  'Turn this photo into a black and white editorial magazine portrait: dramatic studio lighting with deep shadows, high contrast, crisp detail, plain dark charcoal background.' + MANTER,
-  'Turn this photo into a black and white editorial magazine portrait: soft window light, smooth gradation of grays, subtle film grain, plain light gray seamless background.' + MANTER,
-  'Turn this photo into a black and white business magazine cover portrait: classic Rembrandt lighting, rich blacks, fine 35mm film grain, timeless and elegant, plain mid-gray background.' + MANTER
+  'Turn this photo into a black and white editorial portrait photograph: soft but directional studio lighting, natural skin texture, fine film grain, rich blacks and smooth grays, plain solid dark charcoal gray studio background (no gradients, no objects, no scenery). This is a portrait photo only, not a magazine cover: no text, no titles, no logos, no borders.' + MANTER
 ];
 const espera = ms => new Promise(r => setTimeout(r, ms));
 
@@ -40,14 +38,14 @@ export default async function handler(req, res) {
     const ip = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim().slice(0, 60);
     await q('create table if not exists ia_uso (ip text, t timestamptz default now())');
     const n = (await q(`select count(*)::int as n from ia_uso where ip = $1 and t > now() - interval '1 hour'`, [ip]))[0].n;
-    if (n >= 5) throw falha('Você já gerou várias versões agora. Tente de novo daqui a pouco ou use a foto original.', 429);
+    if (n >= 5) throw falha('Você já gerou várias fotos agora. Tente de novo daqui a pouco ou use a foto original.', 429);
     await q('insert into ia_uso (ip) values ($1)', [ip]);
     const modelo = process.env.REPLICATE_MODEL || 'black-forest-labs/flux-kontext-pro';
     const ate = Date.now() + 55000;
     const r = await Promise.allSettled(ESTILOS.map(p => gerar(p, foto, token, modelo, ate)));
     const fotos = r.filter(x => x.status === 'fulfilled').map(x => x.value);
     r.filter(x => x.status === 'rejected').forEach(x => console.error('foto-ia', x.reason));
-    if (!fotos.length) throw falha('Não deu pra criar as versões agora. Use a foto original ou tente de novo.', 502);
+    if (!fotos.length) throw falha('Não deu pra criar a versão em preto e branco agora. Use a foto original ou tente de novo.', 502);
     json(res, 200, { fotos });
   } catch (e) { erro(res, e) }
 }

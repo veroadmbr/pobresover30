@@ -295,7 +295,7 @@
     async pbLocal(src, size = 480) {
       const base = await Conta.redim(src, size);
       const im = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.src = base });
-      const estilos = [{ c: 1.55, b: -12, g: 0, v: .55 }, { c: 1.1, b: 14, g: 10, v: .2 }, { c: 1.3, b: 0, g: 22, v: .4 }];
+      const estilos = [{ c: 1.35, b: -20, g: 8, v: .5 }, { c: 1.1, b: 14, g: 10, v: .2 }, { c: 1.3, b: 0, g: 22, v: .4 }];
       return estilos.map(e => {
         const c = document.createElement('canvas'); c.width = c.height = size; const x = c.getContext('2d');
         x.drawImage(im, 0, 0); const d = x.getImageData(0, 0, size, size), p = d.data, h = size / 2;
@@ -313,9 +313,9 @@
     async fotoIA(src) {
       if (C.modo === 'api') {
         try { const r = await api('foto-ia', { foto: await Conta.redim(src, 1024) }); return { fotos: await Promise.all(r.fotos.map(f => Conta.redim(f, 480))), ia: true } }
-        catch (e) { return { fotos: await Conta.pbLocal(src), ia: false, aviso: e.status === 501 ? '' : e.message } }
+        catch (e) { return { fotos: (await Conta.pbLocal(src)).slice(0, 1), ia: false, aviso: e.status === 501 ? '' : e.message } }
       }
-      return { fotos: await Conta.pbLocal(src), ia: false, aviso: '' };
+      return { fotos: (await Conta.pbLocal(src)).slice(0, 1), ia: false, aviso: '' };
     },
     /* download: usa o recurso do artefato quando existe; senão, link de download comum */
     async baixar(blob, filename) {
