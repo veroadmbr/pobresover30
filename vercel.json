@@ -1,9 +1,5 @@
 {
   "trailingSlash": false,
-  "redirects": [
-    { "source": "/:path*", "has": [{ "type": "host", "value": "pobresover30.vercel.app" }], "destination": "https://pobresover30.com.br/:path*", "permanent": true },
-    { "source": "/:path*", "has": [{ "type": "host", "value": "www.pobresover30.com.br" }], "destination": "https://pobresover30.com.br/:path*", "permanent": true }
-  ],
   "rewrites": [
     { "source": "/admin", "destination": "/admin.html" }
   ],
